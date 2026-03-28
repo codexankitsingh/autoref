@@ -27,7 +27,7 @@ class AIService:
         for attempt in range(max_retries):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-1.5-flash",
                     contents=prompt,
                 )
                 return response.text.strip()
@@ -66,7 +66,9 @@ Return ONLY a valid JSON object with these exact keys, no markdown formatting, n
   "company": "company name or null if not found",
   "role": "job title/role or null if not found",
   "skills": ["skill1", "skill2", "skill3"],
-  "location": "location or null if not found"
+  "location": "location or null if not found",
+  "job_id": "Job ID or Requisition code or null if not found",
+  "job_link": "HTTP URL to the job posting if found, else null"
 }}
 
 Rules:
@@ -86,6 +88,8 @@ Job Description:
                 "role": parsed.get("role"),
                 "skills": parsed.get("skills", []),
                 "location": parsed.get("location"),
+                "job_id": parsed.get("job_id"),
+                "job_link": parsed.get("job_link"),
             }
         except Exception as e:
             print(f"JD parsing error: {e}")
@@ -94,6 +98,8 @@ Job Description:
                 "role": None,
                 "skills": [],
                 "location": None,
+                "job_id": None,
+                "job_link": None,
             }
 
     def generate_email(self, jd_data: dict, user_profile: str = "") -> dict:
@@ -105,6 +111,17 @@ Job Description:
         role = jd_data.get("role") or "the position"
         skills = ", ".join(jd_data.get("skills", []))
         location = jd_data.get("location", "")
+        job_id = jd_data.get("job_id")
+        job_link = jd_data.get("job_link")
+
+        job_context_html = ""
+        if job_id or job_link:
+            job_context_html = "<p>For your reference, here is the job I am referring to:<br>\n"
+            if job_id:
+                job_context_html += f"Job ID: <b>{job_id}</b><br>\n"
+            if job_link:
+                job_context_html += f"Link: <a href=\"{job_link}\">Job Posting</a><br>\n"
+            job_context_html += "</p>\n"
 
         profile_context = ""
         if user_profile:
@@ -113,7 +130,7 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
-        prompt = f"""Write a professional referral request email for a job application.
+        prompt = f"""Write a professional referral request email for a job application. Use the exact formatting structure provided below.
 
 Context:
 - Company: {company}
@@ -122,24 +139,47 @@ Context:
 - Location: {location}
 {profile_context}
 
-Rules:
-1. Length: 120-180 words ONLY
-2. Tone: Professional but warm, NOT robotic
-3. Structure:
-   - Brief self-introduction (1 sentence)
-   - Express interest in the specific role
-   - Mention 2-3 relevant skills/experiences that match
-   - Politely request a referral
-   - Thank them
-4. Do NOT use generic phrases like "I hope this email finds you well"
-5. Do NOT use overly formal language
-6. Make it feel human-written
-7. Be specific to the role and company
+Format to follow EXACTLY (Use HTML tags):
+<p>Hi [Recruiter's Name],</p>
 
-Return ONLY a JSON object with exactly these keys, no markdown, no code blocks:
+<p>I am Ankit, <b>backend engineer intern at Rakuten India</b> and final year student of <b>IIIT Gwalior, BTech+MTech(IT)</b>.</p>
+
+<p>I am reaching out to you because I noticed {company} is hiring for the <b>{role}</b> role and believe I'm a strong fit — here's a quick snapshot about me :</p>
+
+<p><b>Experience:</b><br>
+• <b>Rakuten India</b> — [Mention AT LEAST 2 distinct highlights/metrics from the Rakuten experience that match the JD skills]<br>
+• <b>[Company 2]</b> — [Highlight 2]</p>
+
+<p><b>Competitive Programming:</b><br>
+• [Achievement 1]<br>
+• [Achievement 2]</p>
+
+<p><b>Achievements:</b><br>
+• [Achievement 1]<br>
+• [Achievement 2]</p>
+
+<p><b>Core skills:</b> [List of skills, prioritizing those from the JD]</p>
+
+{job_context_html}
+<p>I would be grateful if you could consider referring me or guide me on relevant opportunities. I would be happy to share my resume and discuss how I can contribute to {company}.</p>
+
+<p>Best,<br>
+Ankit Kumar Singh<br>
++91 9451184789<br>
+Portfolio: <a href="https://ankitsingh.space">ankitsingh.space</a><br>
+LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">linkedin.com/in/ankit-kumar-singh-37450422a/</a></p>
+
+Rules:
+1. Preserve the EXACT bullet point structure and headings.
+2. Adapt the bullet points and skills to highlight specific matches with the Key Skills Required: {skills}.
+3. Fill in the brackets with information from the sender's profile context.
+4. Output ONLY valid HTML (using <p>, <br>, <b>, and <a> tags). Make sure important keywords like the role name or companies are bolded <b> to make it look beautiful and structured on mobile.
+5. Set the subject line to EXACTLY this format: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of the {role} (e.g. "SDE-1", "Backend Engineer", etc).
+
+Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
 {{
   "subject": "email subject line",
-  "body": "full email body"
+  "body": "full HTML email body"
 }}
 """
         try:
@@ -172,11 +212,9 @@ Rules:
 3. Reference the original email briefly
 4. Don't repeat the same content
 5. If follow-up #1: gentle reminder
-6. If follow-up #2: slightly more direct, mention continued interest
-7. If follow-up #3: final follow-up, respect their time
-8. Return ONLY the email body text, no subject line, no JSON, no formatting
+6. Output the email body in valid HTML utilizing <p> and <br> tags where necessary. Include an HTML sign-off matching the original sender. Do NOT use markdown.
 
-Write the follow-up email body:
+Return ONLY the HTML email body text, no JSON, no formatting wrappers.
 """
         try:
             return self._call_gemini(prompt)
