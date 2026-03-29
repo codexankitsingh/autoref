@@ -27,7 +27,7 @@ class AIService:
         for attempt in range(max_retries):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.0-flash-lite",
+                    model="gemini-2.5-flash-lite",
                     contents=prompt,
                 )
                 return response.text.strip()
