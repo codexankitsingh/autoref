@@ -17,7 +17,7 @@ def generate_email(request: GenerateEmailRequest, db: Session = Depends(get_db))
     """
     try:
         # Parse JD
-        parsed = ai_service.parse_jd(request.jd_text)
+        parsed = ai_service.parse_jd(request.jd_text, model_name=request.model)
         parsed_jd = ParsedJD(**parsed)
 
         # Get user profile (single-user MVP: use first user or env config)
@@ -28,6 +28,7 @@ def generate_email(request: GenerateEmailRequest, db: Session = Depends(get_db))
         email_data = ai_service.generate_email(
             jd_data=parsed,
             user_profile=user_profile,
+            model_name=request.model,
         )
 
         return GenerateEmailResponse(

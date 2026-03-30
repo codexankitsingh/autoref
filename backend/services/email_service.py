@@ -155,7 +155,7 @@ class EmailService:
         message["to"] = recipient_email
         message["from"] = account.email
         message["subject"] = subject
-        msg_body = MIMEText(body, "plain")
+        msg_body = MIMEText(body, "html")
         message.attach(msg_body)
 
         # Encode
@@ -190,10 +190,13 @@ class EmailService:
 
             replies = []
             for msg in messages[1:]:  # Skip first message (our sent email)
-                headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
-                # Check if this is an incoming reply (not from us)
-                from_addr = headers.get("From", "")
-                if account.email not in from_addr:
+                label_ids = msg.get("labelIds", [])
+                
+                # A true incoming reply (even from ourselves when testing) will have the INBOX label
+                if "INBOX" in label_ids:
+                    headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
+                    from_addr = headers.get("From", "")
+                    
                     # Extract body
                     body = ""
                     payload = msg.get("payload", {})

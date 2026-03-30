@@ -22,12 +22,12 @@ class AIService:
             self._client = genai.Client(api_key=self.settings.gemini_api_key)
         return self._client
 
-    def _call_gemini(self, prompt: str, max_retries: int = 3) -> str:
+    def _call_gemini(self, prompt: str, model_name: str = "gemini-2.5-flash-lite", max_retries: int = 3) -> str:
         """Make a Gemini API call with retry logic for rate limits."""
         for attempt in range(max_retries):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash-lite",
+                    model=model_name,
                     contents=prompt,
                 )
                 return response.text.strip()
@@ -54,7 +54,7 @@ class AIService:
         text = text.strip()
         return json.loads(text)
 
-    def parse_jd(self, jd_text: str) -> dict:
+    def parse_jd(self, jd_text: str, model_name: str = "gemini-2.5-flash-lite") -> dict:
         """
         Parse a job description to extract structured fields.
         Returns: {"company": str, "role": str, "skills": list[str], "location": str}
@@ -81,7 +81,7 @@ Job Description:
 {jd_text}
 """
         try:
-            text = self._call_gemini(prompt)
+            text = self._call_gemini(prompt, model_name=model_name)
             parsed = self._parse_json_response(text)
             return {
                 "company": parsed.get("company"),
@@ -102,7 +102,7 @@ Job Description:
                 "job_link": None,
             }
 
-    def generate_email(self, jd_data: dict, user_profile: str = "") -> dict:
+    def generate_email(self, jd_data: dict, user_profile: str = "", model_name: str = "gemini-2.5-flash-lite") -> dict:
         """
         Generate a tailored referral email based on JD and user profile.
         Returns: {"subject": str, "body": str}
@@ -183,7 +183,7 @@ Return ONLY a JSON object with exactly these keys, no markdown boundaries around
 }}
 """
         try:
-            text = self._call_gemini(prompt)
+            text = self._call_gemini(prompt, model_name=model_name)
             result = self._parse_json_response(text)
             return {
                 "subject": result.get("subject", f"Referral Request - {role} at {company}"),
@@ -196,7 +196,7 @@ Return ONLY a JSON object with exactly these keys, no markdown boundaries around
                 "body": f"Hi,\n\nI came across the {role} position at {company} and I'm very interested. My background in {skills} aligns well with the requirements. Would you be open to referring me for this role?\n\nThank you for your time!\n\nBest regards",
             }
 
-    def generate_follow_up(self, original_email: str, follow_up_number: int) -> str:
+    def generate_follow_up(self, original_email: str, follow_up_number: int, model_name: str = "gemini-2.5-flash-lite") -> str:
         """
         Generate a follow-up email based on the original.
         Returns: follow-up email body (<80 words)
@@ -217,7 +217,7 @@ Rules:
 Return ONLY the HTML email body text, no JSON, no formatting wrappers.
 """
         try:
-            return self._call_gemini(prompt)
+            return self._call_gemini(prompt, model_name=model_name)
         except Exception as e:
             print(f"Follow-up generation error: {e}")
             if follow_up_number == 1:

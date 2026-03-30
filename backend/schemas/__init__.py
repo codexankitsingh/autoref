@@ -9,12 +9,15 @@ class GenerateEmailRequest(BaseModel):
     jd_text: str
     recipient_email: str
     recipient_name: Optional[str] = None
+    model: str = "gemini-2.5-flash-lite"
 
 class ParsedJD(BaseModel):
     company: Optional[str] = None
     role: Optional[str] = None
     skills: list[str] = []
     location: Optional[str] = None
+    job_id: Optional[str] = None
+    job_link: Optional[str] = None
 
 class GenerateEmailResponse(BaseModel):
     parsed_jd: ParsedJD
@@ -38,6 +41,8 @@ class SendEmailRequest(BaseModel):
     jd_text: Optional[str] = None
     skills: Optional[str] = None
     location: Optional[str] = None
+    job_id: Optional[str] = None
+    job_link: Optional[str] = None
 
 class SendEmailResponse(BaseModel):
     thread_id: int

@@ -19,6 +19,7 @@ export default function NewOutreachPage() {
   const [senderAccountId, setSenderAccountId] = useState<number>(0);
   const [followUpDays, setFollowUpDays] = useState(3);
   const [maxFollowUps, setMaxFollowUps] = useState(3);
+  const [aiModel, setAiModel] = useState('gemini-2.5-flash-lite');
 
   // Generated email state
   const [parsedJD, setParsedJD] = useState<ParsedJD | null>(null);
@@ -64,6 +65,7 @@ export default function NewOutreachPage() {
         jd_text: jdText,
         recipient_email: recipientEmail,
         recipient_name: recipientName || undefined,
+        model: aiModel,
       });
 
       setParsedJD(result.parsed_jd);
@@ -229,6 +231,20 @@ export default function NewOutreachPage() {
                   <option value={1}>1 follow-up</option>
                   <option value={2}>2 follow-ups</option>
                   <option value={3}>3 follow-ups</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">AI Engine</label>
+                <select
+                  className="form-select"
+                  id="ai-model-select"
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                >
+                  <option value="gemini-2.5-flash-lite">Flash Lite (Default - 1000 Daily Quota)</option>
+                  <option value="gemini-flash-latest">Flash Stable (Fast Endpoint)</option>
+                  <option value="gemini-2.5-flash">Flash Experimental (20/day limit)</option>
                 </select>
               </div>
 

@@ -39,15 +39,15 @@ class SchedulerService:
                 id="process_followups",
                 replace_existing=True,
             )
-            # Check for inbox replies every 15 minutes
+            # Check for inbox replies every 1 minute
             self.scheduler.add_job(
                 self._check_inbox_replies,
-                IntervalTrigger(minutes=15),
+                IntervalTrigger(minutes=1),
                 id="check_inbox_replies",
                 replace_existing=True,
             )
             self.scheduler.start()
-            print("📅 Scheduler started — checking follow-ups (5m) and replies (15m)")
+            print("📅 Scheduler started — checking follow-ups (5m) and replies (1m)")
 
     def stop(self):
         """Stop the background scheduler."""
