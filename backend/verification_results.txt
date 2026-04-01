@@ -1,0 +1,9 @@
+SUBJECT: Referral Request - Backend Engineer at Netflix
+BODY:
+Hi,
+
+I came across the Backend Engineer position at Netflix and I'm very interested. My background in Python, FastAPI aligns well with the requirements. Would you be open to referring me for this role?
+
+Thank you for your time!
+
+Best regards

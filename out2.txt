@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/ankitkumarsingh/Job_mining/test_fresh.py", line 10, in <module>
+    client = genai.Client(api_key=settings.gemini_api_key)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitkumarsingh/Job_mining/backend/venv/lib/python3.12/site-packages/google/genai/client.py", line 395, in __init__
+    self._api_client = self._get_api_client(
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitkumarsingh/Job_mining/backend/venv/lib/python3.12/site-packages/google/genai/client.py", line 443, in _get_api_client
+    return BaseApiClient(
+           ^^^^^^^^^^^^^^
+  File "/Users/ankitkumarsingh/Job_mining/backend/venv/lib/python3.12/site-packages/google/genai/_api_client.py", line 683, in __init__
+    raise ValueError(
+ValueError: Missing key inputs argument! To use the Google AI API, provide (`api_key`) arguments. To use the Google Cloud API, provide (`vertexai`, `project` & `location`) arguments.
+FAIL EXCEPTION: ValueError('Missing key inputs argument! To use the Google AI API, provide (`api_key`) arguments. To use the Google Cloud API, provide (`vertexai`, `project` & `location`) arguments.')

@@ -1,0 +1,5 @@
+SUCCESS gemini-2.5-flash-lite: returned response.
+SUCCESS gemini-flash-latest: returned response.
+RATE_LIMITED gemini-2.5-flash: Quota Limit 20
+RATE_LIMITED gemini-2.0-flash: Quota Limit 0
+RATE_LIMITED gemini-2.0-flash-lite: Quota Limit 0

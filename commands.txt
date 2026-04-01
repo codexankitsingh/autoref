@@ -1,0 +1,36 @@
+STARTING THE APPLICATION
+
+[BACKEND]
+1. Open a terminal and go to the backend folder:
+   cd backend
+   source venv/bin/activate
+   uvicorn main:app --reload --port 8000
+
+
+[FRONTEND]
+1. Open a new terminal tab and go to the frontend folder:
+   cd frontend
+   npm run dev
+
+
+==============================================
+STOPPING THE APPLICATION
+==============================================
+
+To gently stop either the frontend or the backend:
+1. Go to the terminal tab that is running the process.
+2. Press: Ctrl + C
+
+
+==============================================
+FORCE KILLING STUCK PROCESSES (If "Port already in use" error occurs)
+
+[KILL BACKEND (Port 8000)]
+Run this exact command anywhere:
+lsof -i :8000 | awk 'NR!=1 {print $2}' | xargs kill -9
+
+
+[KILL FRONTEND (Port 3000 or 3001)]
+Run this exact command:
+lsof -i :3000 | awk 'NR!=1 {print $2}' | xargs kill -9
+
