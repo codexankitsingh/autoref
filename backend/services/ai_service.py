@@ -150,6 +150,10 @@ Format to follow EXACTLY (Use HTML tags):
 • <b>Rakuten India</b> — [Mention AT LEAST 2 distinct highlights/metrics from the Rakuten experience that match the JD skills]<br>
 • <b>[Company 2]</b> — [Highlight 2]</p>
 
+<p><b>Projects:</b><br>
+• <b>[Relevant Project 1]</b> — [Highlight 1 showing skills matching the JD]<br>
+• <b>[Relevant Project 2]</b> — [Highlight 2 showing skills matching the JD]</p>
+
 <p><b>Competitive Programming:</b><br>
 • [Achievement 1]<br>
 • [Achievement 2]</p>
@@ -172,7 +176,7 @@ LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">lin
 Rules:
 1. Preserve the EXACT bullet point structure and headings.
 2. Adapt the bullet points and skills to highlight specific matches with the Key Skills Required: {skills}.
-3. Fill in the brackets with information from the sender's profile context.
+3. Fill in the brackets with information from the sender's profile context. For Projects, explicitly select projects that utilize the requested JD skills.
 4. Output ONLY valid HTML (using <p>, <br>, <b>, and <a> tags). Make sure important keywords like the role name or companies are bolded <b> to make it look beautiful and structured on mobile.
 5. Set the subject line to EXACTLY this format: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of the {role} (e.g. "SDE-1", "Backend Engineer", etc).
 

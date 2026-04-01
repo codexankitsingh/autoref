@@ -26,3 +26,4 @@ out/
 build/
 coverage/
 .npm/
+client_secret_*.json

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 
@@ -37,7 +37,36 @@ export default function NewOutreachPage() {
 
   useEffect(() => {
     loadMailAccounts();
+    // Hydrate form draft from localStorage
+    try {
+      const draft = localStorage.getItem('outreachDraft');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        if (parsed.jdText) setJdText(parsed.jdText);
+        if (parsed.recipientEmail) setRecipientEmail(parsed.recipientEmail);
+        if (parsed.recipientName) setRecipientName(parsed.recipientName);
+        if (parsed.aiModel) setAiModel(parsed.aiModel);
+        if (parsed.parsedJD) setParsedJD(parsed.parsedJD);
+        if (parsed.emailSubject) setEmailSubject(parsed.emailSubject);
+        if (parsed.emailBody) setEmailBody(parsed.emailBody);
+        if (parsed.showPreview !== undefined) setShowPreview(parsed.showPreview);
+      }
+    } catch {
+      // Ignored
+    }
   }, []);
+
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const draft = {
+      jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview
+    };
+    localStorage.setItem('outreachDraft', JSON.stringify(draft));
+  }, [jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview]);
 
   async function loadMailAccounts() {
     try {
@@ -106,13 +135,7 @@ export default function NewOutreachPage() {
 
       showToast('success', 'Email sent successfully! Follow-ups scheduled.');
       // Reset form
-      setJdText('');
-      setRecipientEmail('');
-      setRecipientName('');
-      setEmailSubject('');
-      setEmailBody('');
-      setParsedJD(null);
-      setShowPreview(false);
+      clearDraftFields();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to send';
       showToast('error', message);
@@ -124,6 +147,23 @@ export default function NewOutreachPage() {
   function showToast(type: string, message: string) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3000);
+  }
+
+  function clearDraftFields() {
+    setJdText('');
+    setRecipientEmail('');
+    setRecipientName('');
+    setEmailSubject('');
+    setEmailBody('');
+    setParsedJD(null);
+    setShowPreview(false);
+    localStorage.removeItem('outreachDraft');
+  }
+
+  function handleClearDraft() {
+    if (window.confirm('Are you sure you want to clear your entire drafted email?')) {
+      clearDraftFields();
+    }
   }
 
   return (
@@ -248,20 +288,30 @@ export default function NewOutreachPage() {
                 </select>
               </div>
 
-              <button
-                className="btn btn-primary btn-lg w-full"
-                id="generate-btn"
-                onClick={handleGenerate}
-                disabled={generating || !jdText.trim() || !recipientEmail.trim()}
-              >
-                {generating ? (
-                  <>
-                    <span className="spinner" /> Generating...
-                  </>
-                ) : (
-                  '⚡ Generate Email'
-                )}
-              </button>
+              <div className="flex gap-12 mt-16">
+                <button
+                  className="btn btn-primary btn-lg w-full"
+                  id="generate-btn"
+                  onClick={handleGenerate}
+                  disabled={generating || !jdText.trim() || !recipientEmail.trim()}
+                  style={{ flex: 1 }}
+                >
+                  {generating ? (
+                    <>
+                      <span className="spinner" /> Generating...
+                    </>
+                  ) : (
+                    '⚡ Generate Email'
+                  )}
+                </button>
+                <button
+                  className="btn btn-secondary btn-lg"
+                  onClick={handleClearDraft}
+                  title="Clear Draft"
+                >
+                  🗑️ Clear
+                </button>
+              </div>
             </div>
           </div>
 
