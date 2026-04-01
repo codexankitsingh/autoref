@@ -130,42 +130,28 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
-        prompt = f"""Write a professional referral request email for a job application. Use the exact formatting structure provided below.
+        prompt = f"""You are writing a highly targeted cold outreach email for a recruiter at {company}.
+Your job is to analyze the job description and my profile to write an email that maximizes reply probability.
 
 Context:
 - Company: {company}
 - Role: {role}
 - Key Skills Required: {skills}
 - Location: {location}
+{job_context_html}
+
+About Me (The Sender):
 {profile_context}
 
-Format to follow EXACTLY (Use HTML tags):
-<p>Hi [Recruiter's Name],</p>
-
-<p>I am Ankit, <b>backend engineer intern at Rakuten India</b> and final year student of <b>IIIT Gwalior, BTech+MTech(IT)</b>.</p>
-
-<p>I am reaching out to you because I noticed {company} is hiring for the <b>{role}</b> role and believe I'm a strong fit — here's a quick snapshot about me :</p>
-
-<p><b>Experience:</b><br>
-• <b>Rakuten India</b> — [Mention AT LEAST 2 distinct highlights/metrics from the Rakuten experience that match the JD skills]<br>
-• <b>[Company 2]</b> — [Highlight 2]</p>
-
-<p><b>Projects:</b><br>
-• <b>[Relevant Project 1]</b> — [Highlight 1 showing skills matching the JD]<br>
-• <b>[Relevant Project 2]</b> — [Highlight 2 showing skills matching the JD]</p>
-
-<p><b>Competitive Programming:</b><br>
-• [Achievement 1]<br>
-• [Achievement 2]</p>
-
-<p><b>Achievements:</b><br>
-• [Achievement 1]<br>
-• [Achievement 2]</p>
-
-<p><b>Core skills:</b> [List of skills, prioritizing those from the JD]</p>
-
-{job_context_html}
-<p>I would be grateful if you could consider referring me or guide me on relevant opportunities. I would be happy to share my resume and discuss how I can contribute to {company}.</p>
+Follow these strict rules:
+1. Tone & Style: Make the email sound like a serious, high-value candidate writing a personal note, absolutely NOT an AI template. Keep it short, sharp, and highly recruiter-friendly (maximum 4 short paragraphs).
+2. Alignment: Match the email to the JD using the exact language and priorities the company uses.
+3. Impact over Skills: Emphasize proof of impact and tangible metrics from my profile instead of just listing skills. Do not over-explain. 
+4. Ruthless Curation: Choose ONLY the 1-2 most ridiculously relevant accomplishments/projects/experiences from my profile. DO NOT mention irrelevant skills, rankings, or achievements (even if they are impressive, leave them out if they don't map to the JD).
+5. DSA Signal: Specifically carve out 1 or 2 seamless lines to naturally weave in my top Competitive Programming achievements (e.g., LeetCode/Codeforces rating) to signal relentless problem-solving and Data Structures & Algorithms capability, as tier-1 recruiters look for this.
+6. The Hook: Include ONE specific, compelling reason why I fit this specific {role}.
+7. The Ask: End with ONE simple, low-friction ask (e.g., a quick chat or a referral).
+8. Formatting: Output ONLY valid HTML using <p>, <br>, and <a> tags. Use <b> sparingly to highlight 1-2 critical metrics or technologies for skimmability. Include my standard sign-off:
 
 <p>Best,<br>
 Ankit Kumar Singh<br>
@@ -173,12 +159,7 @@ Ankit Kumar Singh<br>
 Portfolio: <a href="https://ankitsingh.space">ankitsingh.space</a><br>
 LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">linkedin.com/in/ankit-kumar-singh-37450422a/</a></p>
 
-Rules:
-1. Preserve the EXACT bullet point structure and headings.
-2. Adapt the bullet points and skills to highlight specific matches with the Key Skills Required: {skills}.
-3. Fill in the brackets with information from the sender's profile context. For Projects, explicitly select projects that utilize the requested JD skills.
-4. Output ONLY valid HTML (using <p>, <br>, <b>, and <a> tags). Make sure important keywords like the role name or companies are bolded <b> to make it look beautiful and structured on mobile.
-5. Set the subject line to EXACTLY this format: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of the {role} (e.g. "SDE-1", "Backend Engineer", etc).
+9. Subject Line: Set the JSON subject strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of the {role} (e.g. "SDE-1", "Backend Engineer", etc).
 
 Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
 {{
