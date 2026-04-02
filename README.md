@@ -52,9 +52,9 @@ Once both servers are running, access the dashboard by opening your browser to: 
 1. Navigate to **✏️ New Outreach** in the sidebar.
 2. Paste the **Job Description** (or link) of the job you want to apply for.
 3. Click "Parse Job Description". AI will instantly extract the Company, Role, and needed Skills.
-4. Enter the recruiter's Name and Email.
-5. Click **"Generate Email"**. The AI will draft a highly personalized 150-word email asking for a referral, combining your resume with the job requirements.
-6. Review the generated subject and body. Feel free to tweak it manually.
+4. Enter the recruiter's Name and Email. Select your preferred **AI Engine** (e.g. Flash Lite for 1000 daily quota, or Flash Experimental for bleeding-edge logic).
+5. Click **"Generate Email"**. The AI will draft a highly personalized, 3-paragraph B2B-style cold email asking for a referral, gracefully weaving your strongest metrics and projects alongside the JD skills.
+6. Review the generated subject and body. Feel free to tweak it manually. (Note: Everything you type/generate is auto-saved across page refreshes!)
 7. Click **"Send Request"**. The email will be sent instantly directly from your connected Gmail.
 
 ### Step 3: Track & Forget! (Dashboard)
@@ -62,3 +62,8 @@ Once both servers are running, access the dashboard by opening your browser to: 
 2. AutoRef runs a background scheduler. If the recruiter doesn't reply within 3 days, it will automatically generate and send a polite follow-up. 
 3. If the recruiter replies, AutoRef's inbox monitor will automatically detect the reply, update the dashboard status to `Replied`, and **cancel** any pending follow-ups so you never double-email them.
 4. You can also manually update the status (e.g. from Replied to Interview Scheduled) or sync all your job hunting analytics to a private Google Sheet using the "Sync to Sheets" button!
+
+## 📸 Screenshots
+![New Outreach Generator](assets/home_page.png)
+![Outreach Tracking Dashboard](assets/dashboard_page.png)
+![AI & Account Settings](assets/settings_page.png)

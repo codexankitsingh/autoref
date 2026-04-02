@@ -1,0 +1,185 @@
+%-------------------------
+% Resume in Latex
+% Author : Ankit Kumar Singh
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage[dvipsnames]{xcolor}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins tighter to ensure 1-page fit
+\addtolength{\oddsidemargin}{-0.65in}
+\addtolength{\evensidemargin}{-0.65in}
+\addtolength{\textwidth}{1.3in}
+\addtolength{\topmargin}{-0.9in}
+\addtolength{\textheight}{1.85in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-5pt}\color{black}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-3pt}]
+
+\pdfgentounicode=1
+
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\normalsize{#1 \vspace{-3pt}}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#2} \\
+      \textit{#3} & \textit{#4} \\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      #1 & \textbf{#2}\\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{-6pt}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, topsep=0pt, itemsep=0pt, parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% ----------- HEADER -----------
+\begin{center}
+  \vspace{-5pt}
+  {\Huge \scshape Ankit Kumar Singh} \\ \vspace{3pt}
+  % Changed to \footnotesize and minimized spacing to force a single line fit
+  \footnotesize 
+  \raisebox{-0.1\height}\faPhone\ +91 9451184789~$|$~%
+  \href{mailto:ankitkrsingh171819@gmail.com}{\raisebox{-0.2\height}{\faEnvelope}\ \textcolor{blue}{ankitikrsingh171819@gmail.com}}~$|$~%
+  \href{https://linkedin.com/in/ankit-kumar-singh-37450422a}{\raisebox{-0.2\height}\faLinkedin\ \textcolor{blue}{LinkedIn}}~$|$~%
+  \href{https://github.com/codexankitsingh}{\raisebox{-0.2\height}\faGithub\ \textcolor{blue}{GitHub}}~$|$~%
+  \href{https://ankitsingh.space/}{\raisebox{-0.2\height}\faGlobe\ \textcolor{blue}{Portfolio}}~$|$~%
+  \href{https://leetcode.com/u/_Ankitkumarsingh/}{\raisebox{-0.2\height}\faCode\ \textcolor{blue}{LeetCode}}~$|$~%
+  \href{https://codeforces.com/profile/ankitmwd1501}{\raisebox{-0.2\height}\faTrophy\ \textcolor{blue}{Codeforces}}
+\end{center}
+
+\vspace{-16pt}
+
+% ----------- EDUCATION -----------
+\section{Education}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Indian Institute of Information Technology, Gwalior}{07/2021 -- 05/2026}
+    {Integrated Master's in Information Technology }{Gwalior, India}
+  \resumeItemListStart
+    \resumeItem{\textbf{Coursework:} Data Structures \& Algorithms (C/C++), DBMS, Operating Systems, Computer Networks, OOP, Cloud Computing, Distributed Systems}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+% ----------- SKILLS -----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, topsep=1pt, itemsep=0pt, parsep=0pt]
+  \item\normalsize \textbf{Languages:} Python, C++, C, JavaScript (Node.js), SQL
+  \item\normalsize \textbf{Backend \& APIs:} Express.js, FastAPI, RESTful API Design, Microservices, System Design, Kafka, Redis, LLMs
+  \item\normalsize \textbf{Databases:} MySQL, PostgreSQL, MongoDB, BigQuery, Cassandra, Vector DBs
+  \item\normalsize \textbf{Cloud \& DevOps:} AWS(S3,Lambda), GCP, Docker, Kubernetes, Git, CI/CD, Apache Airflow, PySpark
+  \item\normalsize \textbf{Core CS:} Data Structures \& Algorithms, Object-Oriented Programming, DBMS, Operating Systems
+\end{itemize}
+\vspace{-15pt}
+
+% ----------- EXPERIENCE -----------
+\section{Work Experience}
+\resumeSubHeadingListStart
+
+  \resumeSubheading
+    {Rakuten India}{01/2026 -- Present}
+    {Backend Engineer Intern}{Bengaluru, India}
+  \resumeItemListStart
+    \resumeItem{Engineered an LLM-powered RCA Intelligence Agent (\textbf{FastAPI}, \textbf{Rakuten AI}) to autonomously analyze \textbf{Airflow} logs; designed to achieve 70\% auto-resolution for transient failures, projected to save 1{,}600+ hours annually.}
+    \resumeItem{Designed and executed a zero-downtime \textbf{schema migration} (v1 to v2) following \textbf{Agile} sprint cycles, automating backfilling processes and enforcing data quality checks, reducing manual engineering effort by $\sim$30\%.}
+    \resumeItem{Orchestrated scalable ELT pipelines using \textbf{Python} and \textbf{Apache Airflow}, extracting 20--25\,GB of daily transactional data into \textbf{GCS}, processing via \textbf{PySpark} on ephemeral \textbf{Dataproc/Databricks} clusters (auto-destroyed post-task), reducing cloud compute costs by $\sim$40\% while loading into \textbf{BigQuery}.}
+  \resumeItemListEnd
+
+\vspace{10pt}
+  \resumeSubheading
+    {Pixellus Design Pvt.\ Ltd.}{05/2025 -- 07/2025}
+    {\href{https://drive.google.com/file/d/1uJRDGo2IEZjSV3HD33o6cDrQwURD6W7F/view?usp=drive_link}%
+      {\textcolor{blue}{Software Development Intern}}}{Nagpur, India}
+  \resumeItemListStart
+    \resumeItem{Built and deployed RESTful APIs using \textbf{Node.js} and \textbf{Express.js} following \textbf{microservices} design patterns, enabling high-throughput file upload workflows.}
+    \resumeItem{Migrated image storage from \textbf{MongoDB} to a cloud-based \textbf{CDN}, significantly reducing database storage overhead and reducing media delivery latency for end users by 60\%.}
+    \resumeItem{Integrated server-side \textbf{Redis caching} and optimized API response payloads, reducing p95 backend response times by 30\% under concurrent load---validated using \textbf{Apache JMeter}.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+% ----------- PROJECTS -----------
+\section{Projects}
+\resumeSubHeadingListStart
+
+  \resumeProjectHeading
+    {{\large\textbf{LedgerCore: Secure Backend Banking API}}
+      \normalsize$|$ \textit{Node.js, Express.js, MySQL, Redis, JWT}}
+    {\href{https://github.com/codexankitsingh/CLI-Banking-project}%
+      {\textcolor{blue}{Source Code}}}
+  \resumeItemListStart
+    \resumeItem{Designed and implemented a RESTful backend API in \textbf{Node.js}, integrating \textbf{BCrypt hashing} and \textbf{JWT-based authentication} to secure user sessions and prevent unauthorized access.}
+    \resumeItem{Engineered an \textbf{ACID-compliant transaction layer} using \textbf{MySQL} isolation levels and a \textbf{normalized relational schema}, ensuring strict data consistency across 1{,}000+ concurrent operations.}
+    \resumeItem{Reduced API latency by 25\% by integrating \textbf{Redis look-aside caching} and optimizing \textbf{SQL queries}; validated end-to-end system stability via high-throughput load testing with \textbf{k6}.}
+  \resumeItemListEnd
+
+  \resumeProjectHeading
+    {{\large\textbf{AutoRef: AI-Powered Outreach B2B Engine}}
+      \normalsize$|$ \textit{FastAPI, Next.js, SQLite, APScheduler, Gemini AI, OAuth2}}
+    {\href{https://github.com/codexankitsingh/autoref}%
+      {\textcolor{blue}{Source Code}}}
+  \resumeItemListStart
+    \resumeItem{Architected a full-stack SaaS platform using \textbf{FastAPI} and \textbf{Next.js} to dynamically generate highly-targeted B2B cold emails by mapping user resumes to Job Descriptions via the \textbf{Google Gemini LLM}, reducing manual drafting effort by \textbf{95\%} (from 15 minutes to 45 seconds per app).}
+    \resumeItem{Engineered an \textbf{asynchronous background cron scheduler (APScheduler)} that continuously polls the \textbf{Gmail OAuth2 API} to autonomously detect recruiter replies and precisely halt predefined follow-up sequences.}
+    \resumeItem{Implemented seamless application state persistence using \textbf{React hook hydration} and browser \textbf{localStorage} caching, ensuring zero data loss across user routing sessions and drastically improving platform UX resilience.}
+  \resumeItemListEnd
+
+\resumeSubHeadingListEnd
+
+% ----------- ACHIEVEMENTS -----------
+\section{Achievements}
+\begin{itemize}[leftmargin=0.15in, topsep=1pt, itemsep=0pt, parsep=0pt]
+  \item\normalsize
+    \textbf{Knight} on \href{https://leetcode.com/u/_Ankitkumarsingh/}{\textbf{\textcolor{blue}{LeetCode}}} (1950+, top 3\% globally); \textbf{Specialist} on \href{https://codeforces.com/profile/ankitmwd1501}{\textbf{\textcolor{blue}{Codeforces}}} (1431+). \textbf{1{,}000+ problems solved in C++}. Best contest ranks (\textbf{LeetCode}): Global \textbf{85}, \textbf{192}, and \textbf{333}.
+  \item\normalsize
+    \textbf{National Semifinalist} -- \href{https://drive.google.com/file/d/1iF6-lHqZ1V8cvDpj5MuHtBvnmj-VWHdy/view?usp=drive_link}{\textbf{\textcolor{blue}{Flipkart GRiD 7.0}}}; ranked among top teams nationwide, demonstrating strong analytical and problem-solving skills.
+  \item\normalsize
+    Ranked top 0.1\% out of 75{,}000 applicants for \textbf{Amazon ML Summer School}---intensive program covering data science, predictive modeling, and applied machine learning.
+\end{itemize}
+
+\end{document}
