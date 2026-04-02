@@ -159,7 +159,7 @@ Format to follow EXACTLY (Use HTML tags):
   <li><b>Achievements:</b> Flipkart GRiD National Semifinalist, Amazon ML Summer School (top 0.1%)</li>
 </ul>
 
-<p>I've attached my resume for your reference. I'd love to learn about any open opportunities at {company} and would be happy to connect for a quick 10-minute call at your convenience.</p>
+    <p>I've attached <a href="https://drive.google.com/file/d/1ngdvnyt74RyCzqIZ6aaHFD2ck2tqbLQR/view?usp=sharing">my resume</a> for your reference. I'd love to learn about any open opportunities at {company} and would be happy to connect for a quick 10-minute call at your convenience.</p>
 
 <p>Thank you for your time — I genuinely appreciate it.</p>
 
