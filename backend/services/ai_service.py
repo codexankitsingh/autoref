@@ -143,23 +143,39 @@ Context:
 About Me (The Sender):
 {profile_context}
 
-Follow these strict rules:
-1. Tone & Style: Make the email sound like a serious, high-value candidate writing a personal note, absolutely NOT an AI template. Keep it short, sharp, and highly recruiter-friendly (maximum 4 short paragraphs).
-2. Alignment: Match the email to the JD using the exact language and priorities the company uses.
-3. Impact over Skills: Emphasize proof of impact and tangible metrics from my profile instead of just listing skills. Do not over-explain. 
-4. Ruthless Curation: Choose ONLY the 1-2 most ridiculously relevant accomplishments/projects/experiences from my profile. DO NOT mention irrelevant skills, rankings, or achievements (even if they are impressive, leave them out if they don't map to the JD).
-5. DSA Signal: Specifically carve out 1 or 2 seamless lines to naturally weave in my top Competitive Programming achievements (e.g., LeetCode/Codeforces rating) to signal relentless problem-solving and Data Structures & Algorithms capability, as tier-1 recruiters look for this.
-6. The Hook: Include ONE specific, compelling reason why I fit this specific {role}.
-7. The Ask: End with ONE simple, low-friction ask (e.g., a quick chat or a referral).
-8. Formatting: Output ONLY valid HTML using <p>, <br>, and <a> tags. Use <b> sparingly to highlight 1-2 critical metrics or technologies for skimmability. Include my standard sign-off:
+Format to follow EXACTLY (Use HTML tags):
+<p>Hi [Recruiter's Name],</p>
 
-<p>Best,<br>
+<p>I hope this finds you well. I'm Ankit Kumar Singh, a final-year Integrated M.Tech student at IIIT Gwalior (graduating May 2026), currently interning as a Backend Engineer at Rakuten India where I'm building LLM-powered agents and large-scale ELT pipelines processing 20–25 GB of daily transactional data on GCP/BigQuery.</p>
+
+<p>I'm reaching out to express my strong interest in the <b>{role}</b> role at <b>{company}</b>.</p>
+
+<p>A quick snapshot of my profile:</p>
+<ul style="margin-top: 0; padding-left: 20px;">
+  <li><b>LeetCode Knight (1950+)</b> — Global Rank 85 (top 0.01%)</li>
+  <li><b>Backend:</b> [Extract 4-5 relevant backend tools from JD/Profile, e.g. FastAPI, Node.js, Redis, Kafka]</li>
+  <li><b>Data:</b> [Extract 3-4 relevant data tools, e.g. PySpark, Airflow, BigQuery]</li>
+  <li><b>Projects:</b> [Extract 2-3 highly relevant projects (short names only), e.g. Distributed Rate Limiter, AI-Powered SaaS]</li>
+  <li><b>Achievements:</b> Flipkart GRiD National Semifinalist, Amazon ML Summer School (top 0.1%)</li>
+</ul>
+
+<p>I've attached my resume for your reference. I'd love to learn about any open opportunities at {company} and would be happy to connect for a quick 10-minute call at your convenience.</p>
+
+<p>Thank you for your time — I genuinely appreciate it.</p>
+
+<p>Best regards,<br>
 Ankit Kumar Singh<br>
 +91 9451184789<br>
+LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">linkedin.com/in/ankit-kumar-singh-37450422a/</a><br>
+GitHub: <a href="https://github.com/codexankitsingh">github.com/codexankitsingh</a><br>
 Portfolio: <a href="https://ankitsingh.space">ankitsingh.space</a><br>
-LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">linkedin.com/in/ankit-kumar-singh-37450422a/</a></p>
+LeetCode: <a href="https://leetcode.com/u/_Ankitkumarsingh/">leetcode.com/u/_Ankitkumarsingh/</a></p>
 
-9. Subject Line: Set the JSON subject strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of the {role} (e.g. "SDE-1", "Backend Engineer", etc).
+Rules:
+1. Preserve the EXACT HTML structure provided above. Do not deviate or add fluffy introductory sentences.
+2. Adapt the "Backend", "Data", and "Projects" bullets intelligently by injecting the exact keywords requested in the {skills} JD context, mapping them to my profile. Keep them extremely short and punchy as shown in the example.
+3. Keep the LeetCode and Achievements bullets static exactly as written.
+4. Set the subject line strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of {role}.
 
 Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
 {{
