@@ -214,6 +214,7 @@ Rules:
 4. Don't repeat the same content
 5. If follow-up #1: gentle reminder
 6. Output the email body in valid HTML utilizing <p> and <br> tags where necessary. Include an HTML sign-off matching the original sender. Do NOT use markdown.
+7. NEVER output placeholders like [Date] or [Company]. Always write naturally or extract the exact values from the Original email provided above.
 
 Return ONLY the HTML email body text, no JSON, no formatting wrappers.
 """
