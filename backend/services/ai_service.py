@@ -146,22 +146,20 @@ About Me (The Sender):
 Format to follow EXACTLY (Use HTML tags):
 <p>Hi [Recruiter's Name],</p>
 
-<p>I hope this finds you well. I'm Ankit Kumar Singh, a final-year Integrated M.Tech student at IIIT Gwalior (graduating May 2026), currently interning as a Backend Engineer at Rakuten India where I'm building LLM-powered agents and large-scale ELT pipelines processing 20–25 GB of daily transactional data on GCP/BigQuery.</p>
+<p>I'm Ankit Kumar Singh — Backend Engineer Intern at <b>Rakuten India</b> and final-year Integrated M.Tech student at <b>IIIT Gwalior</b> (graduating May 2026). At Rakuten, I've built an <b>LLM-powered RCA agent</b> that auto-resolves 70% of pipeline failures (saving 750+ engineering hours/year) and orchestrated <b>ELT pipelines processing 20–25 GB/day</b> on GCP, cutting cloud compute costs by ~40%.</p>
 
-<p>I'm reaching out to express my strong interest in the <b>{role}</b> role at <b>{company}</b>.</p>
+<p>I'm reaching out because the <b>{role}</b> role at <b>{company}</b> is a strong match for my experience — here's a quick snapshot:</p>
 
-<p>A quick snapshot of my profile:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
-  <li><b>LeetCode Knight (1950+)</b> — Global Rank 85 (top 0.01%)</li>
-  <li><b>Backend:</b> [Extract 4-5 relevant backend tools from JD/Profile, e.g. FastAPI, Node.js, Redis, Kafka]</li>
-  <li><b>Data:</b> [Extract 3-4 relevant data tools, e.g. PySpark, Airflow, BigQuery]</li>
-  <li><b>Projects:</b> [Extract 2-3 highly relevant projects (short names only), e.g. Distributed Rate Limiter, AI-Powered SaaS]</li>
-  <li><b>Achievements:</b> Flipkart GRiD National Semifinalist, Amazon ML Summer School (top 0.1%)</li>
+  <li><b>DSA:</b> LeetCode Knight (1950+, top 3%); Global Rank <b>85</b> · 1,000+ problems solved in C++</li>
+  <li><b>Backend:</b> [Pick 4-5 tools from my profile that directly match the JD skills, e.g. FastAPI, Node.js, Redis, Docker, Microservices]</li>
+  <li><b>Data/Cloud:</b> [Pick 3-4 from my profile matching JD, e.g. PySpark, Airflow, BigQuery, GCP, AWS]</li>
+  <li><b>Projects:</b> [Pick 2-3 most JD-relevant projects by short name, e.g. Distributed Rate Limiter (Redis), AutoRef (FastAPI SaaS), LedgerCore (ACID Banking API)]</li>
+  <li><b>Recognition:</b> Flipkart GRiD 7.0 National Semifinalist · Amazon ML Summer School (top 0.1% of 75K)</li>
 </ul>
 
-    <p>I've attached <a href="https://drive.google.com/file/d/1ngdvnyt74RyCzqIZ6aaHFD2ck2tqbLQR/view?usp=sharing">my resume</a> for your reference. I'd love to learn about any open opportunities at {company} and would be happy to connect for a quick 10-minute call at your convenience.</p>
-
-<p>Thank you for your time — I genuinely appreciate it.</p>
+{job_context_html}
+<p>I've attached <a href="https://drive.google.com/file/d/18Ve3R6HL-BTDLALraKVtVlABNxqM5OKC/view?usp=sharing">my resume</a> for your reference. Would you be open to a quick 10-minute call to discuss how I can contribute to {company}?</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
@@ -172,10 +170,12 @@ Portfolio: <a href="https://ankitsingh.space">ankitsingh.space</a><br>
 LeetCode: <a href="https://leetcode.com/u/_Ankitkumarsingh/">leetcode.com/u/_Ankitkumarsingh/</a></p>
 
 Rules:
-1. Preserve the EXACT HTML structure provided above. Do not deviate or add fluffy introductory sentences.
-2. Adapt the "Backend", "Data", and "Projects" bullets intelligently by injecting the exact keywords requested in the {skills} JD context, mapping them to my profile. Keep them extremely short and punchy as shown in the example.
-3. Keep the LeetCode and Achievements bullets static exactly as written.
-4. Set the subject line strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior ’26 – Referral Request". Replace [Target Role] with a concise version of {role}.
+1. Preserve the EXACT HTML structure, paragraphs, and bullet order above. Do NOT add extra paragraphs, greetings, or filler.
+2. For the "Backend" and "Data/Cloud" bullets: extract ONLY tools from my profile that directly appear in or closely match the JD's required skills. Order them by JD priority. Keep each bullet to one concise line.
+3. For the "Projects" bullet: pick the 2-3 projects from my profile whose tech stack most closely overlaps with the JD. Use short names with a parenthetical hint, e.g. "AutoRef (FastAPI SaaS)".
+4. Keep the "DSA" and "Recognition" bullets EXACTLY as written — do not modify them.
+5. NEVER output placeholders like [Date], [Your Name], or brackets. Fill everything naturally from the context.
+6. Set the subject line strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior '26 – Referral Request". Replace [Target Role] with a concise version of {role}.
 
 Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
 {{
