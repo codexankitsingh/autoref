@@ -189,12 +189,19 @@ class EmailService:
             messages = thread.get("messages", [])
 
             replies = []
+            # Get our own email to filter out our sent messages
+            our_email = account.email.lower()
+
             for msg in messages[1:]:  # Skip first message (our sent email)
                 label_ids = msg.get("labelIds", [])
-                
-                # A true incoming reply (even from ourselves when testing) will have the INBOX label
-                if "INBOX" in label_ids:
-                    headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
+                headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
+                from_addr = headers.get("From", "").lower()
+
+                # Detect reply: either has INBOX label OR is from someone other than us
+                is_inbox = "INBOX" in label_ids
+                is_from_other = our_email not in from_addr
+
+                if is_inbox or is_from_other:
                     from_addr = headers.get("From", "")
                     
                     # Extract body

@@ -150,6 +150,31 @@ class SchedulerService:
             print(f"📅 Skipping follow-up for thread {thread.id} (replied/closed)")
             return
 
+        # CRITICAL: Fresh Gmail reply check RIGHT BEFORE sending
+        # Prevents race condition where reply arrived between scheduler cycles
+        if thread.gmail_thread_id and thread.sender_account_id:
+            try:
+                fresh_replies = email_service.check_replies(
+                    db=db,
+                    gmail_thread_id=thread.gmail_thread_id,
+                    sender_account_id=thread.sender_account_id,
+                )
+                if fresh_replies:
+                    print(f"📅 ⛔ Last-second reply detected for thread {thread.id}! Aborting follow-up.")
+                    thread.replied = True
+                    thread.status = "replied"
+                    thread.last_activity_at = datetime.utcnow()
+                    job.status = "cancelled"
+                    # Cancel ALL remaining follow-ups
+                    db.query(FollowUpJob).filter(
+                        FollowUpJob.thread_id == thread.id,
+                        FollowUpJob.status == "pending",
+                    ).update({"status": "cancelled"})
+                    db.commit()
+                    return
+            except Exception as e:
+                print(f"📅 Warning: Pre-send reply check failed for thread {thread.id}: {e}")
+
         # Get original email content
         original_msg = db.query(Message).filter(
             Message.thread_id == thread.id,
