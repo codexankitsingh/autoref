@@ -159,7 +159,7 @@ Format to follow EXACTLY (Use HTML tags):
 </p>
 
 {job_context_html}
-<p>Here is <a href="https://drive.google.com/file/d/18Ve3R6HL-BTDLALraKVtVlABNxqM5OKC/view?usp=sharing">my resume</a>. Would you be open to a quick 10-minute call to discuss how I can contribute to {company}?</p>
+<p>I'd be happy to share my resume or hop on a quick call at your convenience. Would love to hear your thoughts!</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
