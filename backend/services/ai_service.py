@@ -150,24 +150,21 @@ Format to follow EXACTLY (Use HTML tags):
 
 <p>I'm reaching out because the <b>{role}</b> role at <b>{company}</b> is a strong match for my experience — here's a quick snapshot:</p>
 
-<ul style="margin-top: 0; padding-left: 20px;">
-  <li><b>DSA:</b> LeetCode Knight (1950+, top 3%); Global Rank <b>85</b> · 1,000+ problems solved in C++</li>
-  <li><b>Backend:</b> [Pick 4-5 tools from my profile that directly match the JD skills, e.g. FastAPI, Node.js, Redis, Docker, Microservices]</li>
-  <li><b>Data/Cloud:</b> [Pick 3-4 from my profile matching JD, e.g. PySpark, Airflow, BigQuery, GCP, AWS]</li>
-  <li><b>Projects:</b> [Pick 2-3 most JD-relevant projects by short name, e.g. Distributed Rate Limiter (Redis), AutoRef (FastAPI SaaS), LedgerCore (ACID Banking API)]</li>
-  <li><b>Recognition:</b> Flipkart GRiD 7.0 National Semifinalist · Amazon ML Summer School (top 0.1% of 75K)</li>
-</ul>
+<p>
+<b>DSA:</b> LeetCode Knight (1950+, top 3%); Global Rank 85 · 1,000+ problems in C++<br>
+<b>Backend:</b> [Pick 4-5 tools from my profile that directly match the JD skills, e.g. FastAPI, Node.js, Redis, Docker, Microservices]<br>
+<b>Data/Cloud:</b> [Pick 3-4 from my profile matching JD, e.g. PySpark, Airflow, BigQuery, GCP, AWS]<br>
+<b>Projects:</b> [Pick 2-3 most JD-relevant projects by short name, e.g. Distributed Rate Limiter (Redis), AutoRef (FastAPI SaaS), LedgerCore (ACID Banking API)]<br>
+<b>Recognition:</b> Flipkart GRiD 7.0 National Semifinalist · Amazon ML Summer School (top 0.1% of 75K)
+</p>
 
 {job_context_html}
-<p>I've attached <a href="https://drive.google.com/file/d/18Ve3R6HL-BTDLALraKVtVlABNxqM5OKC/view?usp=sharing">my resume</a> for your reference. Would you be open to a quick 10-minute call to discuss how I can contribute to {company}?</p>
+<p>Here is <a href="https://drive.google.com/file/d/18Ve3R6HL-BTDLALraKVtVlABNxqM5OKC/view?usp=sharing">my resume</a>. Would you be open to a quick 10-minute call to discuss how I can contribute to {company}?</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
 +91 9451184789<br>
-LinkedIn: <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">linkedin.com/in/ankit-kumar-singh-37450422a/</a><br>
-GitHub: <a href="https://github.com/codexankitsingh">github.com/codexankitsingh</a><br>
-Portfolio: <a href="https://ankitsingh.space">ankitsingh.space</a><br>
-LeetCode: <a href="https://leetcode.com/u/_Ankitkumarsingh/">leetcode.com/u/_Ankitkumarsingh/</a></p>
+<a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">LinkedIn</a> · ankitsingh.space</p>
 
 Rules:
 1. Preserve the EXACT HTML structure, paragraphs, and bullet order above. Do NOT add extra paragraphs, greetings, or filler.
