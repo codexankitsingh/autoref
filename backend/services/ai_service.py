@@ -163,8 +163,7 @@ Format to follow EXACTLY (Use HTML tags):
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
-+91 9451184789<br>
-<a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/">LinkedIn</a> · ankitsingh.space</p>
++91 9451184789</p>
 
 Rules:
 1. Preserve the EXACT HTML structure, paragraphs, and bullet order above. Do NOT add extra paragraphs, greetings, or filler.
