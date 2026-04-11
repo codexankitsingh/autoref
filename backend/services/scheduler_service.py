@@ -3,6 +3,7 @@ Scheduler Service — Follow-up automation using APScheduler.
 Checks for pending follow-ups, generates AI-powered follow-up emails, and sends them.
 """
 from datetime import datetime, timedelta
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
@@ -121,11 +122,20 @@ class SchedulerService:
             if not due_jobs:
                 return
 
-            print(f"📅 Processing {len(due_jobs)} pending follow-ups...")
+            print(f"📅 Processing {len(due_jobs)} pending follow-ups (max 3 per cycle, 2 min gap)...")
 
+            sent_count = 0
             for job in due_jobs:
+                if sent_count >= 3:
+                    print(f"📅 Hit per-cycle cap (3). Remaining follow-ups deferred to next cycle.")
+                    break
                 try:
                     self._execute_follow_up(db, job)
+                    sent_count += 1
+                    # Throttle: wait 2 minutes between sends to avoid Gmail spam flags
+                    if sent_count < 3 and sent_count < len(due_jobs):
+                        print(f"📅 Cooling down for 2 minutes before next follow-up...")
+                        time.sleep(120)
                 except Exception as e:
                     print(f"Error processing follow-up job {job.id}: {e}")
                     continue
