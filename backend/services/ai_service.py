@@ -159,13 +159,14 @@ Format to follow EXACTLY (Use HTML tags):
 
 <p>At Rakuten, I've:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
-  <li>Cut cloud compute costs <b>40%</b> by orchestrating Airflow pipelines processing 20–25 GB/day (GCS → PySpark on ephemeral Dataproc → BigQuery)</li>
+  <li>Cut cloud compute costs <b>40%</b> by orchestrating Airflow pipelines processing 120–150 GB/day (GCS → PySpark on ephemeral Dataproc → BigQuery)</li>
   <li>Led zero-downtime schema migrations with automated backfill + data quality checks</li>
-  <li>Built an LLM agent that reduced MTTR by 70% for pipeline failures</li>
+  <li>Built an LLM agent that reduced MTTR by 60% for pipeline failures (saving 750+ eng hours/year)</li>
 </ul>
 
 <p>
 <b>Tech:</b> [Pick 4-6 matching tools: e.g. Airflow, PySpark, BigQuery, Databricks, Kafka, Docker]<br>
+<b>Projects:</b> [Pick 2 most JD-relevant projects: e.g. SaleStream (Airflow/BigQuery), VaultPay (MySQL/Redis)]<br>
 <b>DSA:</b> LeetCode Knight (top 3%) | Flipkart GRiD National Semifinalist
 </p>
 
