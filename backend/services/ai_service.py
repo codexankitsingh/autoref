@@ -102,7 +102,7 @@ Job Description:
                 "job_link": None,
             }
 
-    def generate_email(self, jd_data: dict, user_profile: str = "", model_name: str = "gemini-2.5-flash-lite") -> dict:
+    def generate_email(self, jd_data: dict, user_profile: str = "", model_name: str = "gemini-2.5-flash-lite", target_role: str = "Backend/SDE") -> dict:
         """
         Generate a tailored referral email based on JD and user profile.
         Returns: {"subject": str, "body": str}
@@ -130,6 +130,55 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
+        backend_format = f"""
+Format to follow EXACTLY (Use HTML tags):
+<p>Hi [Recruiter's Name],</p>
+
+<p>I'm Ankit—Backend Engineer Intern at <b>Rakuten India</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about {company}'s {role} role because <b>[1-sentence personalization based on JD: e.g., "Stripe's infrastructure challenges around global payment reliability align perfectly with my distributed systems work"]</b>.</p>
+
+<p>Quick context on why I'd be a strong fit:</p>
+<ul style="margin-top: 0; padding-left: 20px;">
+  <li><b>At Rakuten:</b> Built an LLM-powered RCA agent (FastAPI) that auto-resolves 70% of pipeline failures, saving 750+ eng hours/year</li>
+  <li><b>DSA:</b> LeetCode Knight (1950+, top 3% globally) | Codeforces Specialist | 1,000+ problems solved</li>
+  <li><b>Systems:</b> [Pick 2-3 most JD-relevant backend tools/projects: e.g. Distributed Rate Limiter (Redis), ACID banking APIs (Node.js/MySQL), microservices at scale]</li>
+</ul>
+
+{job_context_html}
+<p>I'd be happy to share my resume or hop on a quick call at your convenience. Would love to hear your thoughts!</p>
+
+<p>Best regards,<br>
+Ankit Kumar Singh<br>
++91 9451184789</p>
+"""
+
+        data_format = f"""
+Format to follow EXACTLY (Use HTML tags):
+<p>Hi [Recruiter's Name],</p>
+
+<p>I'm Ankit—Data Engineer Intern at <b>Rakuten India</b>, graduating IIIT Gwalior in May 2026. I'm reaching out because <b>[1-sentence personalization based on JD: e.g., "seeing {company}'s work on real-time data infrastructure, my ELT pipeline experience could add value to your team"]</b>.</p>
+
+<p>At Rakuten, I've:</p>
+<ul style="margin-top: 0; padding-left: 20px;">
+  <li>Cut cloud compute costs <b>40%</b> by orchestrating Airflow pipelines processing 20–25 GB/day (GCS → PySpark on ephemeral Dataproc → BigQuery)</li>
+  <li>Led zero-downtime schema migrations with automated backfill + data quality checks</li>
+  <li>Built an LLM agent that reduced MTTR by 70% for pipeline failures</li>
+</ul>
+
+<p>
+<b>Tech:</b> [Pick 4-6 matching tools: e.g. Airflow, PySpark, BigQuery, Databricks, Kafka, Docker]<br>
+<b>DSA:</b> LeetCode Knight (top 3%) | Flipkart GRiD National Semifinalist
+</p>
+
+{job_context_html}
+<p>I'd be happy to share my resume or hop on a quick call to discuss {company}'s data platform needs. Would love to hear your thoughts!</p>
+
+<p>Best regards,<br>
+Ankit Kumar Singh<br>
++91 9451184789</p>
+"""
+
+        chosen_format = data_format if target_role == "Data Engineering" else backend_format
+
         prompt = f"""You are writing a highly targeted cold outreach email for a recruiter at {company}.
 Your job is to analyze the job description and my profile to write an email that maximizes reply probability.
 
@@ -138,40 +187,21 @@ Context:
 - Role: {role}
 - Key Skills Required: {skills}
 - Location: {location}
-{job_context_html}
 
 About Me (The Sender):
 {profile_context}
 
-Format to follow EXACTLY (Use HTML tags):
-<p>Hi [Recruiter's Name],</p>
-
-<p>I'm Ankit Kumar Singh — Backend Engineer Intern at <b>Rakuten India</b> and final-year Integrated M.Tech student at <b>IIIT Gwalior</b> (graduating May 2026). At Rakuten, I've built an <b>LLM-powered RCA agent</b> that auto-resolves 70% of pipeline failures (saving 750+ engineering hours/year) and orchestrated <b>ELT pipelines processing 20–25 GB/day</b> on GCP, cutting cloud compute costs by ~40%.</p>
-
-<p>I'm reaching out because the <b>{role}</b> role at <b>{company}</b> is a strong match for my experience — here's a quick snapshot:</p>
-
-<p>
-<b>DSA:</b> LeetCode Knight (1950+, top 3%); Global Rank 85 · 1,000+ problems in C++<br>
-<b>Backend:</b> [Pick 4-5 tools from my profile that directly match the JD skills, e.g. FastAPI, Node.js, Redis, Docker, Microservices]<br>
-<b>Data/Cloud:</b> [Pick 3-4 from my profile matching JD, e.g. PySpark, Airflow, BigQuery, GCP, AWS]<br>
-<b>Projects:</b> [Pick 2-3 most JD-relevant projects by short name, e.g. Distributed Rate Limiter (Redis), AutoRef (FastAPI SaaS), LedgerCore (ACID Banking API)]<br>
-<b>Recognition:</b> Flipkart GRiD 7.0 National Semifinalist · Amazon ML Summer School (top 0.1% of 75K)
-</p>
-
-{job_context_html}
-<p>I'd be happy to share my resume or hop on a quick call at your convenience. Would love to hear your thoughts!</p>
-
-<p>Best regards,<br>
-Ankit Kumar Singh<br>
-+91 9451184789</p>
+{chosen_format}
 
 Rules:
 1. Preserve the EXACT HTML structure, paragraphs, and bullet order above. Do NOT add extra paragraphs, greetings, or filler.
-2. For the "Backend" and "Data/Cloud" bullets: extract ONLY tools from my profile that directly appear in or closely match the JD's required skills. Order them by JD priority. Keep each bullet to one concise line.
-3. For the "Projects" bullet: pick the 2-3 projects from my profile whose tech stack most closely overlaps with the JD. Use short names with a parenthetical hint, e.g. "AutoRef (FastAPI SaaS)".
-4. Keep the "DSA" and "Recognition" bullets EXACTLY as written — do not modify them.
-5. NEVER output placeholders like [Date], [Your Name], or brackets. Fill everything naturally from the context.
-6. Set the subject line strictly to: "[Target Role] | Rakuten Intern | IIIT Gwalior '26 – Referral Request". Replace [Target Role] with a concise version of {role}.
+2. Generate the 1-sentence personalization intelligently by connecting a specific technical challenge or goal from the JD to my exact experience.
+3. For the bracketed [Tools/Projects] sections: extract ONLY tools from my profile that directly appear in or closely match the JD's required skills.
+4. Keep the static bullets exactly as written.
+5. NEVER output placeholders like [Date], [Your Name]. Fill everything naturally from the context.
+6. Set the subject line strictly to:
+   - If Backend/SDE: "Built auto-healing pipelines at Rakuten | {company} SWE opportunity"
+   - If Data: "Rakuten DE Intern | 40% cost reduction via Airflow + PySpark | {company} opportunity"
 
 Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
 {{

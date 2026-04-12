@@ -29,6 +29,7 @@ def generate_email(request: GenerateEmailRequest, db: Session = Depends(get_db))
             jd_data=parsed,
             user_profile=user_profile,
             model_name=request.model,
+            target_role=request.target_role,
         )
 
         return GenerateEmailResponse(

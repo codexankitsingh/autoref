@@ -20,6 +20,7 @@ export default function NewOutreachPage() {
   const [followUpDays, setFollowUpDays] = useState(3);
   const [maxFollowUps, setMaxFollowUps] = useState(3);
   const [aiModel, setAiModel] = useState('gemini-2.5-flash-lite');
+  const [targetRole, setTargetRole] = useState('Backend/SDE');
 
   // Generated email state
   const [parsedJD, setParsedJD] = useState<ParsedJD | null>(null);
@@ -46,6 +47,7 @@ export default function NewOutreachPage() {
         if (parsed.recipientEmail) setRecipientEmail(parsed.recipientEmail);
         if (parsed.recipientName) setRecipientName(parsed.recipientName);
         if (parsed.aiModel) setAiModel(parsed.aiModel);
+        if (parsed.targetRole) setTargetRole(parsed.targetRole);
         if (parsed.parsedJD) setParsedJD(parsed.parsedJD);
         if (parsed.emailSubject) setEmailSubject(parsed.emailSubject);
         if (parsed.emailBody) setEmailBody(parsed.emailBody);
@@ -63,10 +65,10 @@ export default function NewOutreachPage() {
       return;
     }
     const draft = {
-      jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview
+      jdText, recipientEmail, recipientName, aiModel, targetRole, parsedJD, emailSubject, emailBody, showPreview
     };
     localStorage.setItem('outreachDraft', JSON.stringify(draft));
-  }, [jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview]);
+  }, [jdText, recipientEmail, recipientName, aiModel, targetRole, parsedJD, emailSubject, emailBody, showPreview]);
 
   async function loadMailAccounts() {
     try {
@@ -95,6 +97,7 @@ export default function NewOutreachPage() {
         recipient_email: recipientEmail,
         recipient_name: recipientName || undefined,
         model: aiModel,
+        target_role: targetRole,
       });
 
       setParsedJD(result.parsed_jd);
@@ -285,6 +288,19 @@ export default function NewOutreachPage() {
                   <option value="gemini-2.5-flash-lite">Flash Lite (Default - 1000 Daily Quota)</option>
                   <option value="gemini-flash-latest">Flash Stable (Fast Endpoint)</option>
                   <option value="gemini-2.5-flash">Flash Experimental (20/day limit)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Target Role</label>
+                <select
+                  className="form-select"
+                  id="target-role-select"
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                >
+                  <option value="Backend/SDE">Backend Engineering / SDE</option>
+                  <option value="Data Engineering">Data Engineering</option>
                 </select>
               </div>
 

@@ -38,7 +38,7 @@ export const api = {
   health: () => apiRequest<{ status: string }>('/health'),
 
   // Generate
-  generateEmail: (data: { jd_text: string; recipient_email: string; recipient_name?: string; model?: string }) =>
+  generateEmail: (data: { jd_text: string; recipient_email: string; recipient_name?: string; model?: string; target_role?: string }) =>
     apiRequest<{
       parsed_jd: { company: string | null; role: string | null; skills: string[]; location: string | null };
       subject: string;

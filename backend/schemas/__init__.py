@@ -10,6 +10,7 @@ class GenerateEmailRequest(BaseModel):
     recipient_email: str
     recipient_name: Optional[str] = None
     model: str = "gemini-2.5-flash-lite"
+    target_role: str = "Backend/SDE"
 
 class ParsedJD(BaseModel):
     company: Optional[str] = None
