@@ -34,10 +34,10 @@ class SchedulerService:
     def start(self):
         """Start the background scheduler with a periodic check job."""
         if not self.scheduler.running:
-            # Check for pending follow-ups every 5 minutes
+            # Check and process 1 pending follow-up every 1 minute
             self.scheduler.add_job(
                 self._process_pending_followups,
-                IntervalTrigger(minutes=5),
+                IntervalTrigger(minutes=1),
                 id="process_followups",
                 replace_existing=True,
             )
@@ -131,43 +131,14 @@ class SchedulerService:
             if not due_jobs:
                 return
 
-            # Cap at 3 per cycle to avoid Gmail spam flags
-            batch = due_jobs[:3]
-            if len(due_jobs) > 3:
-                print(f"📅 {len(due_jobs)} follow-ups due; processing 3 now, deferring rest.")
-
-            print(f"📅 Processing {len(batch)} pending follow-ups (2 min gap between each)...")
-
-            # Get current explicit UTC time for APScheduler
-            now_aware = datetime.now(timezone.utc)
-            for i, job in enumerate(batch):
-                # Schedule each send with a 2-minute offset (explicit UTC)
-                run_at = now_aware + timedelta(minutes=2 * i)
-                self.scheduler.add_job(
-                    self._execute_follow_up_wrapper,
-                    trigger='date',
-                    run_date=run_at,
-                    args=[job.id],
-                    id=f"followup_send_{job.id}",
-                    replace_existing=True,
-                )
-                print(f"📅 Queued follow-up job {job.id} to send at {run_at}")
+            # Process exactly 1 per minute. This naturally throttles sends 
+            # to avoid Gmail spam flags without needing complex thread sleeps.
+            job = due_jobs[0]
+            print(f"📅 {len(due_jobs)} follow-ups due. Processing 1 now (steady drip)...")
+            self._execute_follow_up(db, job)
 
         except Exception as e:
             print(f"Error in follow-up processing: {e}")
-        finally:
-            db.close()
-
-    def _execute_follow_up_wrapper(self, job_id: int):
-        """Wrapper that opens its own DB session for a deferred follow-up send."""
-        db = SessionLocal()
-        try:
-            job = db.query(FollowUpJob).filter(FollowUpJob.id == job_id).first()
-            if not job or job.status != "pending":
-                return
-            self._execute_follow_up(db, job)
-        except Exception as e:
-            print(f"Error in deferred follow-up job {job_id}: {e}")
         finally:
             db.close()
 
