@@ -99,14 +99,7 @@ Job Description:
             }
         except Exception as e:
             print(f"JD parsing error: {e}")
-            return {
-                "company": None,
-                "role": None,
-                "skills": [],
-                "location": None,
-                "job_id": None,
-                "job_link": None,
-            }
+            raise Exception(f"Failed to extract JD information: {e}")
 
     def generate_email(self, jd_data: dict, user_profile: str = "", model_name: str = "gemini-2.5-flash-lite", target_role: str = "Backend/SDE") -> dict:
         """
@@ -197,10 +190,7 @@ Return ONLY a JSON object with exactly these keys:
             }
         except Exception as e:
             print(f"Email generation error: {e}")
-            return {
-                "subject": f"Referral Request - {role} at {company}",
-                "body": f"Hi,\n\nI came across the {role} position at {company} and I'm very interested. My background in {skills} aligns well with the requirements. Would you be open to referring me for this role?\n\nThank you for your time!\n\nBest regards",
-            }
+            raise Exception(f"Failed to generate custom email body: {e}")
 
     def generate_follow_up(self, original_email: str, follow_up_number: int, model_name: str = "gemini-2.5-flash-lite") -> str:
         """
