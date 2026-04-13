@@ -136,3 +136,38 @@ def sync_to_sheets(request: SyncSheetsRequest, db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to sync to sheets: {str(e)}")
+
+
+@router.get("/debug/followups")
+def debug_followups(db: Session = Depends(get_db)):
+    """Debug: show pending/failed follow-up jobs."""
+    from models.follow_up_job import FollowUpJob
+    from datetime import datetime
+
+    pending = db.query(FollowUpJob).filter(FollowUpJob.status == "pending").all()
+    failed = db.query(FollowUpJob).filter(FollowUpJob.status == "failed").all()
+
+    return {
+        "now_utc": str(datetime.utcnow()),
+        "pending_count": len(pending),
+        "failed_count": len(failed),
+        "pending_jobs": [
+            {
+                "id": j.id,
+                "thread_id": j.thread_id,
+                "follow_up_number": j.follow_up_number,
+                "scheduled_time": str(j.scheduled_time),
+                "status": j.status,
+            }
+            for j in pending[:10]
+        ],
+        "failed_jobs": [
+            {
+                "id": j.id,
+                "thread_id": j.thread_id,
+                "follow_up_number": j.follow_up_number,
+                "status": j.status,
+            }
+            for j in failed[:10]
+        ],
+    }
