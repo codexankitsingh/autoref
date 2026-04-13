@@ -2,7 +2,7 @@
 Scheduler Service — Follow-up automation using APScheduler.
 Checks for pending follow-ups, generates AI-powered follow-up emails, and sends them.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -119,12 +119,13 @@ class SchedulerService:
         """Process all pending follow-up jobs that are due."""
         db = SessionLocal()
         try:
-            now = datetime.utcnow()
+            # Our DB stores naive UTC. Compare against naive UTC.
+            now_naive = datetime.utcnow()
 
             # Find all due follow-up jobs
             due_jobs = db.query(FollowUpJob).filter(
                 FollowUpJob.status == "pending",
-                FollowUpJob.scheduled_time <= now,
+                FollowUpJob.scheduled_time <= now_naive,
             ).all()
 
             if not due_jobs:
@@ -137,9 +138,11 @@ class SchedulerService:
 
             print(f"📅 Processing {len(batch)} pending follow-ups (2 min gap between each)...")
 
+            # Get current explicit UTC time for APScheduler
+            now_aware = datetime.now(timezone.utc)
             for i, job in enumerate(batch):
-                # Schedule each send with a 2-minute offset (non-blocking)
-                run_at = datetime.utcnow() + timedelta(minutes=2 * i)
+                # Schedule each send with a 2-minute offset (explicit UTC)
+                run_at = now_aware + timedelta(minutes=2 * i)
                 self.scheduler.add_job(
                     self._execute_follow_up_wrapper,
                     trigger='date',
@@ -148,7 +151,7 @@ class SchedulerService:
                     id=f"followup_send_{job.id}",
                     replace_existing=True,
                 )
-                print(f"📅 Queued follow-up job {job.id} to send at +{2*i} min")
+                print(f"📅 Queued follow-up job {job.id} to send at {run_at}")
 
         except Exception as e:
             print(f"Error in follow-up processing: {e}")
