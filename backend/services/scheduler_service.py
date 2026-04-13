@@ -3,7 +3,6 @@ Scheduler Service — Follow-up automation using APScheduler.
 Checks for pending follow-ups, generates AI-powered follow-up emails, and sends them.
 """
 from datetime import datetime, timedelta
-import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
@@ -122,26 +121,41 @@ class SchedulerService:
             if not due_jobs:
                 return
 
-            print(f"📅 Processing {len(due_jobs)} pending follow-ups (max 3 per cycle, 2 min gap)...")
+            # Cap at 3 per cycle to avoid Gmail spam flags
+            batch = due_jobs[:3]
+            if len(due_jobs) > 3:
+                print(f"📅 {len(due_jobs)} follow-ups due; processing 3 now, deferring rest.")
 
-            sent_count = 0
-            for job in due_jobs:
-                if sent_count >= 3:
-                    print(f"📅 Hit per-cycle cap (3). Remaining follow-ups deferred to next cycle.")
-                    break
-                try:
-                    self._execute_follow_up(db, job)
-                    sent_count += 1
-                    # Throttle: wait 2 minutes between sends to avoid Gmail spam flags
-                    if sent_count < 3 and sent_count < len(due_jobs):
-                        print(f"📅 Cooling down for 2 minutes before next follow-up...")
-                        time.sleep(120)
-                except Exception as e:
-                    print(f"Error processing follow-up job {job.id}: {e}")
-                    continue
+            print(f"📅 Processing {len(batch)} pending follow-ups (2 min gap between each)...")
+
+            for i, job in enumerate(batch):
+                # Schedule each send with a 2-minute offset (non-blocking)
+                run_at = datetime.utcnow() + timedelta(minutes=2 * i)
+                self.scheduler.add_job(
+                    self._execute_follow_up_wrapper,
+                    trigger='date',
+                    run_date=run_at,
+                    args=[job.id],
+                    id=f"followup_send_{job.id}",
+                    replace_existing=True,
+                )
+                print(f"📅 Queued follow-up job {job.id} to send at +{2*i} min")
 
         except Exception as e:
             print(f"Error in follow-up processing: {e}")
+        finally:
+            db.close()
+
+    def _execute_follow_up_wrapper(self, job_id: int):
+        """Wrapper that opens its own DB session for a deferred follow-up send."""
+        db = SessionLocal()
+        try:
+            job = db.query(FollowUpJob).filter(FollowUpJob.id == job_id).first()
+            if not job or job.status != "pending":
+                return
+            self._execute_follow_up(db, job)
+        except Exception as e:
+            print(f"Error in deferred follow-up job {job_id}: {e}")
         finally:
             db.close()
 
@@ -244,7 +258,13 @@ class SchedulerService:
 
         except Exception as e:
             print(f"📅 Failed to send follow-up #{job.follow_up_number}: {e}")
-            job.status = "pending"  # Keep as pending to retry
+            # Track retries to avoid infinite loops on permanent failures (e.g. expired OAuth)
+            retry_count = getattr(job, '_retry_count', 0) + 1
+            if retry_count >= 3 or "invalid_grant" in str(e).lower() or "token" in str(e).lower():
+                job.status = "failed"
+                print(f"📅 ❌ Follow-up job {job.id} permanently failed after {retry_count} attempts. Marking as failed.")
+            else:
+                job.status = "pending"  # Keep as pending to retry
             db.commit()
 
     def _check_inbox_replies(self):
