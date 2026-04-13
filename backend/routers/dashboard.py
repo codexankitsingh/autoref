@@ -171,3 +171,14 @@ def debug_followups(db: Session = Depends(get_db)):
             for j in failed[:10]
         ],
     }
+
+@router.get("/debug/trigger_scheduler")
+def debug_trigger_scheduler(db: Session = Depends(get_db)):
+    """Debug: manually run the follow-up logic to see what happens."""
+    from services.scheduler_service import scheduler_service
+    import traceback
+    try:
+        scheduler_service._process_pending_followups()
+        return {"status": "success", "message": "Triggered successfully"}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
