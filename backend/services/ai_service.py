@@ -133,7 +133,7 @@ About the sender (use this to personalize the email):
 Format to follow EXACTLY (Use HTML tags):
 <p>Hi Name,</p>
 
-<p>I'm Ankit—[Current Role from profile, e.g. Software Engineer Intern] at <b>[Current Company]</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about {company}'s {role} role because <b>[Write 1 hyper-specific personalization sentence linking a single core technical challenge in the JD to my exact skills and experience]</b>.</p>
+<p>I'm Ankit, a [Current Role from profile] at <b>[Current Company]</b> (graduating from IIIT Gwalior in May 2026). I'm reaching out regarding the {role} opportunity at {company}, as my experience with [Specific capability from your profile] directly aligns with your focus on [Specific technical challenge or goal from the JD].</p>
 
 <p>Quick context on why I'd be a strong fit:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
