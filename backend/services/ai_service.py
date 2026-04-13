@@ -42,16 +42,22 @@ class AIService:
         raise Exception("Max retries exceeded for Gemini API")
 
     def _parse_json_response(self, text: str) -> dict:
-        """Parse JSON from Gemini response, handling markdown code blocks."""
-        # Strip markdown code blocks if present
-        if text.startswith("```"):
-            lines = text.split("\n")
-            # Remove first and last lines (```json and ```)
-            lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            text = "\n".join(lines)
+        """Parse JSON from Gemini response, handling markdown code blocks and conversational text."""
         text = text.strip()
+        
+        # Try finding the first { and the last }
+        start = text.find("{")
+        end = text.rfind("}")
+        
+        if start != -1 and end != -1:
+            try:
+                # Extract the pure JSON substring
+                json_str = text[start:end+1]
+                return json.loads(json_str)
+            except Exception as e:
+                print(f"JSON regex extraction failed: {e}")
+                
+        # Ultimate fallback
         return json.loads(text)
 
     def parse_jd(self, jd_text: str, model_name: str = "gemini-2.5-flash-lite") -> dict:
