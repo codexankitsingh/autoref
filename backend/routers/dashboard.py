@@ -176,9 +176,30 @@ def debug_followups(db: Session = Depends(get_db)):
 def debug_trigger_scheduler(db: Session = Depends(get_db)):
     """Debug: manually run the follow-up logic to see what happens."""
     from services.scheduler_service import scheduler_service
+    from models.follow_up_job import FollowUpJob
+    from datetime import datetime
     import traceback
+    
     try:
-        scheduler_service._process_pending_followups()
-        return {"status": "success", "message": "Triggered successfully"}
+        now_naive = datetime.utcnow()
+        due_jobs = db.query(FollowUpJob).filter(
+            FollowUpJob.status == "pending",
+            FollowUpJob.scheduled_time <= now_naive,
+        ).all()
+        
+        if not due_jobs:
+            return {"status": "success", "message": "No jobs due", "now": now_naive}
+            
+        job = due_jobs[0]
+        
+        # Test executing
+        try:
+            scheduler_service._execute_follow_up(db, job)
+            db.commit()
+            return {"status": "success", "message": f"Processed job {job.id}", "new_status": job.status}
+        except Exception as e:
+            db.rollback()
+            return {"status": "error_exec", "error": str(e), "traceback": traceback.format_exc()}
+            
     except Exception as e:
         return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
