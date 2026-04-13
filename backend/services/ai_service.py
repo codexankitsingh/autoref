@@ -143,7 +143,7 @@ Format to follow EXACTLY (Use HTML tags):
 </ul>
 
 {job_context_html}
-<p>I've included my <a href="https://drive.google.com/file/d/1XBJO2rHhM90jUA0yV2Q-eyAsQxA3NgoN/view?usp=sharing">resume here</a> for your reference. I would welcome the opportunity to hop on a brief call to discuss how my background aligns with your team's goals. Looking forward to hearing from you!</p>
+<p>I've included my <a href="https://drive.google.com/file/d/1XBJO2rHhM90jUA0yV2Q-eyAsQxA3NgoN/view?usp=sharing">resume here</a> for your reference. I would be incredibly grateful if you'd be open to referring me for this position, or if you could point me toward the right recruiter for this team. I would welcome the opportunity to hop on a brief call to discuss further. Looking forward to hearing from you!</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
