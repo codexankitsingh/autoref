@@ -130,17 +130,17 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
-        backend_format = f"""
+        dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
 <p>Hi [Recruiter's Name],</p>
 
-<p>I'm Ankit—Backend Engineer Intern at <b>Rakuten India</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about {company}'s {role} role because <b>[1-sentence personalization based on JD: e.g., "Stripe's infrastructure challenges around global payment reliability align perfectly with my distributed systems work"]</b>.</p>
+<p>I'm Ankit—[Current Role from profile, e.g. Software Engineer Intern] at <b>[Current Company]</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about {company}'s {role} role because <b>[Write 1 hyper-specific personalization sentence linking a single core technical challenge in the JD to my exact skills and experience]</b>.</p>
 
 <p>Quick context on why I'd be a strong fit:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
-  <li><b>At Rakuten:</b> Built an LLM-powered RCA agent (FastAPI) that auto-resolves 70% of pipeline failures, saving 750+ eng hours/year</li>
-  <li><b>DSA:</b> LeetCode Knight (1950+, top 3% globally) | Codeforces Specialist | 1,000+ problems solved</li>
-  <li><b>Systems:</b> [Pick 2-3 most JD-relevant backend tools/projects: e.g. Distributed Rate Limiter (Redis), ACID banking APIs (Node.js/MySQL), microservices at scale]</li>
+  <li><b>[Category 1 matching JD keywords, e.g., Systems Engineering / Data Pipelines / Microservices]:</b> [Extract and rewrite exactly 1 achievement/project from my profile that perfectly matches this category. Include metrics if available.]</li>
+  <li><b>[Category 2 matching JD keywords, e.g., Performance Optimization / Architecture]:</b> [Extract and rewrite exactly 1 achievement/project from my profile that perfectly matches this category.]</li>
+  <li><b>[Category 3 matching JD keywords, e.g., Problem Solving / Core Tech Stack]:</b> [Extract and rewrite exactly 1 achievement from my profile, such as my LeetCode/Codeforces stats or specific tooling mastery, that proves my capability.]</li>
 </ul>
 
 {job_context_html}
@@ -151,60 +151,32 @@ Ankit Kumar Singh<br>
 +91 9451184789</p>
 """
 
-        data_format = f"""
-Format to follow EXACTLY (Use HTML tags):
-<p>Hi [Recruiter's Name],</p>
-
-<p>I'm Ankit—Data Engineer Intern at <b>Rakuten India</b>, graduating IIIT Gwalior in May 2026. I'm reaching out because <b>[1-sentence personalization based on JD: e.g., "seeing {company}'s work on real-time data infrastructure, my ELT pipeline experience could add value to your team"]</b>.</p>
-
-<p>At Rakuten, I've:</p>
-<ul style="margin-top: 0; padding-left: 20px;">
-  <li>Cut cloud compute costs <b>40%</b> by orchestrating Airflow pipelines processing 120–150 GB/day (GCS → PySpark on ephemeral Dataproc → BigQuery)</li>
-  <li>Led zero-downtime schema migrations with automated backfill + data quality checks</li>
-  <li>Built an LLM agent that reduced MTTR by 60% for pipeline failures (saving 750+ eng hours/year)</li>
-</ul>
-
-<p>
-<b>Tech:</b> [Pick 4-6 matching tools: e.g. Airflow, PySpark, BigQuery, Databricks, Kafka, Docker]<br>
-<b>Projects:</b> [Pick 2 most JD-relevant projects: e.g. SaleStream (Airflow/BigQuery), VaultPay (MySQL/Redis)]<br>
-<b>DSA:</b> LeetCode Knight (top 3%) | Flipkart GRiD National Semifinalist
-</p>
-
-{job_context_html}
-<p>I'd be happy to share my resume or hop on a quick call to discuss {company}'s data platform needs. Would love to hear your thoughts!</p>
-
-<p>Best regards,<br>
-Ankit Kumar Singh<br>
-+91 9451184789</p>
-"""
-
-        chosen_format = data_format if target_role == "Data Engineering" else backend_format
-
         prompt = f"""You are writing a highly targeted cold outreach email for a recruiter at {company}.
 Your job is to analyze the job description and my profile to write an email that maximizes reply probability.
 
 Context:
 - Company: {company}
-- Role: {role}
+- Target Role Category: {target_role}
+- Exact Job Title: {role}
 - Key Skills Required: {skills}
 - Location: {location}
 
 About Me (The Sender):
 {profile_context}
 
-{chosen_format}
+{dynamic_format}
 
 Rules:
-1. Preserve the EXACT HTML structure, paragraphs, and bullet order above. Do NOT add extra paragraphs, greetings, or filler.
-2. Generate the 1-sentence personalization intelligently by connecting a specific technical challenge or goal from the JD to my exact experience.
-3. For the bracketed [Tools/Projects] sections: extract ONLY tools from my profile that directly appear in or closely match the JD's required skills.
-4. Keep the static bullets exactly as written.
-5. NEVER output placeholders like [Date], [Your Name]. Fill everything naturally from the context.
-6. Set the subject line strictly to:
-   - If Backend/SDE: "Built auto-healing pipelines at Rakuten | {company} SWE opportunity"
-   - If Data: "Rakuten DE Intern | 40% cost reduction via Airflow + PySpark | {company} opportunity"
+1. Preserve the EXACT HTML structure above. Do NOT add extra paragraphs, greetings, or filler.
+2. The 1-sentence personalization MUST bridge a specific need in the JD with a specific capability in my profile.
+3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! If the JD asks for C++, explicitly highlight my C++ skills. If it asks for PySpark, highlight PySpark. Select the projects from my profile that are the BEST fit for this specific job.
+4. Replace bracketed placeholders like [Category 1] with an actionable, bolded category name related to the bullet point (e.g. <b>At Rakuten (Systems):</b> or <b>DSA & Algorithms:</b>).
+5. Set the subject line strictly to a short, punchy technical headline. Example forms:
+   - "Codeforces Specialist & IIITG Grad | {role} at {company}"
+   - "Built auto-healing pipelines at Rakuten | {company} SWE opportunity"
+   - "Rakuten Intern | 40% cost reduction via Airflow | {company} DE opportunity"
 
-Return ONLY a JSON object with exactly these keys, no markdown boundaries around the JSON:
+Return ONLY a JSON object with exactly these keys:
 {{
   "subject": "email subject line",
   "body": "full HTML email body"
