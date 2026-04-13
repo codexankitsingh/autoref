@@ -1,0 +1,131 @@
+
+--- ../Resume/Ankit singh (backend).pdf ---
+Ankit Kumar Singh
+ +91 9451184789 | # ankitsinghh171819@gmail.com | ï LinkedIn | § GitHub |  Portfolio | Ð LeetCode |  Codeforces
+Education
+Indian Institute of Information Technology, Gwalior
+07/2021 – 05/2026
+Integrated Master’s in Information Technology
+Gwalior, India
+• Coursework: Data Structures & Algorithms (C/C++), DBMS, Operating Systems, Computer Networks, OOP,
+Cloud Computing, Distributed Systems
+Technical Skills
+• Languages: Python, C++, C, JavaScript (Node.js), SQL
+• Backend & APIs: Express.js, FastAPI, RESTful API Design, Microservices, System Design, Redis, LLMs
+• Databases: MySQL, PostgreSQL, MongoDB, BigQuery
+• Cloud & DevOps: AWS(S3, Lambda), GCP, Docker, Git, CI/CD, Apache Airflow, PySpark, Hadoop
+• Testing & Tools: Postman, Apache JMeter, k6, REST Client, Linux, Bash
+Work Experience
+Rakuten India
+01/2026 – Present
+Backend Engineer Intern
+Bengaluru, India
+• Engineered an LLM-powered RCA Intelligence Agent (FastAPI, Rakuten AI) to autonomously analyze
+Airflow logs, achieving 70% auto-resolution for transient failures and saving 750+ engineering hours annually.
+• Designed and executed a zero-downtime schema migration (v1 to v2) following Agile sprint cycles, automating
+backfilling processes and enforcing data quality checks, reducing manual engineering effort by ∼30%.
+• Orchestrated scalable ELT pipelines using Python and Apache Airflow, extracting 20–25 GB of daily
+transactional data into GCS, processing via PySpark on ephemeral Dataproc/Databricks clusters
+(auto-destroyed post-task), reducing cloud compute costs by ∼40% while loading into BigQuery.
+Pixellus Design Pvt. Ltd.
+05/2025 – 07/2025
+Software Development Intern
+Nagpur, India
+• Migrated image storage from MongoDB to a cloud-based CDN, significantly reducing database storage overhead
+and reducing media delivery latency for end users by 60%.
+• Integrated server-side Redis caching and optimized API response payloads, reducing p95 backend response times
+by 30% under concurrent load—validated using Apache JMeter.
+Projects
+LedgerCore: Secure Backend Banking API | Node.js, Express.js, MySQL, Redis, JWT
+Source Code
+• Designed and implemented a RESTful backend API in Node.js, integrating BCrypt hashing and JWT-based
+authentication to secure user sessions and prevent unauthorized access.
+• Engineered an ACID-compliant transaction layer using MySQL isolation levels and a normalized
+relational schema, ensuring strict data consistency across 1,000+ concurrent operations.
+• Reduced API latency by 25% by integrating Redis look-aside caching and optimizing SQL queries; validated
+end-to-end system stability via high-throughput load testing with k6.
+AutoRef: AI-Powered Outreach Engine | FastAPI, Next.js, SQLite, Gemini AI, OAuth2
+Source Code
+• Architected a full-stack SaaS platform (FastAPI on Render, Next.js on Vercel); built a Gemini LLM pipeline
+to semantically match resumes against JDs, cutting cold email drafting time by 95% (15 min →45 sec).
+• Designed a multi-stage async workflow engine (APScheduler) orchestrating stateful pipelines (generate →
+send →follow-up →terminate) with SQLite persistence, ensuring idempotency and fault tolerance across
+concurrent sessions.
+• Integrated Gmail OAuth2 for secure dispatch and inbox monitoring; implemented event-driven reply
+detection to auto-halt follow-up sequences, decoupling background jobs from request handling.
+Distributed Rate Limiter | Redis, FastAPI, Docker, C++, Python
+Source Code
+• Designed a distributed rate limiting service supporting Token Bucket, Sliding Window, and Fixed
+Window algorithms using Redis atomic operations, ensuring thread-safe, low-latency enforcement across clients.
+• Exposed a configurable FastAPI middleware with per-client rate policies; containerized via Docker and validated
+throughput limits under high-concurrency using k6.
+Achievements
+• Knight on LeetCode (1950+, top 3% globally); Specialist on Codeforces (1431+). 1,000+ problems solved
+in C++. Best contest ranks (LeetCode): Global 85, 192, and 333.
+• National Semifinalist – Flipkart GRiD 7.0 and top 0.1% out of 75,000 applicants for Amazon ML Summer
+School; demonstrating strong analytical and problem-solving skills nationwide.
+
+
+--- ../Resume/Ankit singh_(de).pdf ---
+Ankit Kumar Singh
+ +91 9451184789 | # ankitsinghh171819@gmail.com | ï LinkedIn | § GitHub |  Portfolio | Ð LeetCode |  Codeforces
+Education
+Indian Institute of Information Technology, Gwalior
+07/2021 – 05/2026
+Integrated Master’s in Information Technology
+Gwalior, India
+• Coursework: Data Structures & Algorithms (C/C++), DBMS, Operating Systems, Computer Networks, OOP,
+Cloud Computing, Distributed Systems
+Technical Skills
+• Languages: Python, SQL (MySQL, PostgreSQL), C++, C, JavaScript
+• Data Engineering: Apache Airflow, PySpark, Databricks, Dataproc, ETL/ELT Pipelines, Data Modeling, Kafka,
+Spark, Hadoop
+• Databases & Warehousing: BigQuery, MySQL, PostgreSQL, MongoDB, Redis, Vector DBs
+• Cloud & DevOps: GCP, AWS(S3, Lambda), Docker, Kubernetes, Git, CI/CD, Linux
+Work Experience
+Rakuten India
+01/2026 – Present
+Data Engineer Intern
+Bengaluru, India
+• Reduced cloud compute costs by ∼40% by orchestrating Airflow-based ELT pipelines processing
+120–150 GB/day—extracted to GCS, transformed via PySpark on ephemeral Dataproc/Databricks clusters
+(auto-destroyed post-job), and loaded into BigQuery.
+• Led a zero-downtime schema migration across production tables in BigQuery, automating backfill pipelines via
+Airflow and enforcing row-level data quality checks—reduced manual QA effort by ∼30%.
+• Built an LLM-powered RCA agent (FastAPI, Rakuten AI) to auto-diagnose Airflow pipeline failures; reduced
+mean-time-to-resolution for transient errors by ∼60%, saving ∼750 engineering hours/year.
+• Designed Tableau-compatible analytics views in BigQuery powering operational dashboards; drove
+stakeholder adoption by translating complex pipeline metrics into business-readable KPIs
+Pixellus Design Pvt. Ltd.
+05/2025 – 07/2025
+Software Development Intern
+Nagpur, India
+• Migrated media storage from MongoDB to a cloud-based CDN, reducing media delivery latency by 60% and
+freeing significant database storage overhead for a design collaboration platform.
+• Developed and deployed RESTful API integrations (GET/POST, token auth, pagination, retry/backoff
+logic) using Node.js and Express.js, handling high-throughput third-party file ingestion workflows reliably.
+• Reduced p95 API latency by 30% under concurrent load by implementing Redis look-aside caching and optimizing
+API response payloads—validated via Apache JMeter load tests.
+Projects
+SaleStream — E-Commerce Analytics ELT | Python, Airflow, PySpark, BigQuery, Docker
+Source Code
+• Architected an idempotent ELT pipeline using Dockerized Airflow (76+ tasks) to ingest 8 e-commerce CSV
+datasets into GCS with zero manual intervention.
+• Designed a star schema (Fact/Dimension) using PySpark on ephemeral Dataproc clusters, resolving schema
+drift across 8 sources and reducing storage footprint via Snappy-compressed Parquet.
+• Engineered MERGE-based upserts with deduplication into partitioned BigQuery tables, powering 8 analytics
+views consumed by Looker Studio dashboards for real-time business reporting.
+VaultPay — Transactional Data Platform | MySQL, Data Modeling, Indexing, Redis, Node.js Source Code
+• Designed a 3NF relational schema with composite indexes and MySQL isolation levels (SERIALIZABLE),
+ensuring zero failed fund transfers across 1,000+ concurrent transactions under k6 stress tests.
+• Reduced query latency by 25% through Redis look-aside caching, indexed lookups, and SQL query plan
+optimization—validated at sustained throughput via k6 load tests.
+• Built a secure Node.js service layer with JWT auth and BCrypt hashing, isolating 10,000+ concurrent user
+sessions across independent transaction contexts.
+Achievements
+• Knight on LeetCode (1950+, top 3% globally); Specialist on Codeforces (1431+). 1,000+ problems solved
+in C++. Best contest ranks: Global 85, 192, and 333.
+• National Semifinalist – Flipkart GRiD 7.0; ranked among top teams out of 10,000+ participants nationwide.
+• Ranked top 0.1% out of 75,000 applicants for Amazon ML Summer School—intensive program covering data
+science, predictive modeling, and applied machine learning.
+

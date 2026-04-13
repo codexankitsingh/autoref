@@ -1,9 +1,18 @@
-SUBJECT: Referral Request - Backend Engineer at Netflix
+SUBJECT: Built auto-healing pipelines at Rakuten | Netflix SWE opportunity
 BODY:
-Hi,
+<p>Hi [Recruiter's Name],</p>
 
-I came across the Backend Engineer position at Netflix and I'm very interested. My background in Python, FastAPI aligns well with the requirements. Would you be open to referring me for this role?
+<p>I'm Ankit—Backend Engineer Intern at <b>Rakuten India</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about Netflix's Backend Engineer role because <b>my experience building robust backend services with Python and FastAPI directly aligns with Netflix's need for scalable and efficient solutions.</b></p>
 
-Thank you for your time!
+<p>Quick context on why I'd be a strong fit:</p>
+<ul style="margin-top: 0; padding-left: 20px;">
+  <li><b>At Rakuten:</b> Built an LLM-powered RCA agent (FastAPI) that auto-resolves 70% of pipeline failures, saving 750+ eng hours/year</li>
+  <li><b>DSA:</b> LeetCode Knight (1950+, top 3% globally) | Codeforces Specialist | 1,000+ problems solved</li>
+  <li><b>Systems:</b> Python, FastAPI</li>
+</ul>
 
-Best regards
+<p>I'd be happy to share my resume or hop on a quick call at your convenience. Would love to hear your thoughts!</p>
+
+<p>Best regards,<br>
+Ankit Kumar Singh<br>
++91 9451184789</p>
