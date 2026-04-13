@@ -3,6 +3,8 @@ Scheduler Service — Follow-up automation using APScheduler.
 Checks for pending follow-ups, generates AI-powered follow-up emails, and sends them.
 """
 from datetime import datetime, timedelta
+import os
+import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
@@ -46,8 +48,15 @@ class SchedulerService:
                 id="check_inbox_replies",
                 replace_existing=True,
             )
+            # Self-ping to keep Render free tier alive (prevents spin-down)
+            self.scheduler.add_job(
+                self._keep_alive_ping,
+                IntervalTrigger(minutes=14),
+                id="keep_alive",
+                replace_existing=True,
+            )
             self.scheduler.start()
-            print("📅 Scheduler started — checking follow-ups (5m) and replies (1m)")
+            print("📅 Scheduler started — follow-ups (5m), replies (1m), keep-alive (14m)")
 
     def stop(self):
         """Stop the background scheduler."""
@@ -331,6 +340,19 @@ class SchedulerService:
             print(f"Error checking inbox replies: {e}")
         finally:
             db.close()
+
+    def _keep_alive_ping(self):
+        """Ping our own /health endpoint to prevent Render free tier spin-down."""
+        try:
+            render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://autoref-zz6o.onrender.com")
+            if render_url:
+                resp = requests.get(f"{render_url}/health", timeout=10)
+                print(f"📅 🏓 Keep-alive ping: {resp.status_code}")
+            else:
+                # Running locally, no need to ping
+                pass
+        except Exception as e:
+            print(f"📅 Keep-alive ping failed: {e}")
 
 
 # Singleton
