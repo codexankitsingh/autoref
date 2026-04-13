@@ -132,7 +132,7 @@ About the sender (use this to personalize the email):
 
         dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
-<p>Hi [Recruiter's Name],</p>
+<p>Hi Name,</p>
 
 <p>I'm Ankit—[Current Role from profile, e.g. Software Engineer Intern] at <b>[Current Company]</b>, graduating IIIT Gwalior in May 2026. I'm reaching out about {company}'s {role} role because <b>[Write 1 hyper-specific personalization sentence linking a single core technical challenge in the JD to my exact skills and experience]</b>.</p>
 
