@@ -168,7 +168,7 @@ class SchedulerService:
                 )
                 if fresh_replies:
                     print(f"📅 ⛔ Last-second reply detected for thread {thread.id}! Aborting follow-up.")
-                    thread.replied = True
+                    thread.replied = 1
                     thread.status = "replied"
                     thread.last_activity_at = datetime.utcnow()
                     job.status = "cancelled"
@@ -240,14 +240,10 @@ class SchedulerService:
             print(f"📅 Sent follow-up #{job.follow_up_number} for thread {thread.id}")
 
         except Exception as e:
-            print(f"📅 Failed to send follow-up #{job.follow_up_number}: {e}")
-            # Track retries to avoid infinite loops on permanent failures (e.g. expired OAuth)
-            retry_count = getattr(job, '_retry_count', 0) + 1
-            if retry_count >= 3 or "invalid_grant" in str(e).lower() or "token" in str(e).lower():
-                job.status = "failed"
-                print(f"📅 ❌ Follow-up job {job.id} permanently failed after {retry_count} attempts. Marking as failed.")
-            else:
-                job.status = "pending"  # Keep as pending to retry
+            print(f"📅 ❌ Failed to send follow-up #{job.follow_up_number}: {e}")
+            # Mark as failed immediately to prevent infinite loops clogging the queue
+            # (e.g. if Gmail blocks the message, retrying makes it worse)
+            job.status = "failed"
             db.commit()
 
     def _check_inbox_replies(self):
@@ -279,7 +275,7 @@ class SchedulerService:
                     if replies:
                         print(f"📅 ✉️  Reply detected for thread {thread.id}! Updating status.")
                         # Mark thread as replied
-                        thread.replied = True
+                        thread.replied = 1
                         thread.status = "replied"
                         thread.last_activity_at = datetime.utcnow()
 
