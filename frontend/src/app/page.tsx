@@ -119,11 +119,18 @@ export default function NewOutreachPage() {
       return;
     }
 
+    // Inject recipient name into the greeting before sending
+    const firstName = recipientName.trim().split(' ')[0] || 'there';
+    const personalizedBody = emailBody.replace(
+      /Hi Name,/i,
+      `Hi ${firstName},`
+    );
+
     setSending(true);
     try {
       await api.sendEmail({
         email_subject: emailSubject,
-        email_body: emailBody,
+        email_body: personalizedBody,
         recipient_email: recipientEmail,
         recipient_name: recipientName || undefined,
         sender_account_id: senderAccountId,
@@ -136,9 +143,10 @@ export default function NewOutreachPage() {
         location: parsedJD?.location || undefined,
       });
 
-      showToast('success', 'Email sent successfully! Follow-ups scheduled.');
-      // Reset form
-      clearDraftFields();
+      showToast('success', `✅ Sent to ${recipientEmail}! Add next recipient to send again.`);
+      // Only clear recipient fields — preserve JD/email so user can send to next HR
+      setRecipientEmail('');
+      setRecipientName('');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to send';
       showToast('error', message);
@@ -410,6 +418,13 @@ export default function NewOutreachPage() {
                       disabled={generating}
                     >
                       🔄 Regenerate
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-lg"
+                      onClick={handleClearDraft}
+                      title="Clear everything and start fresh"
+                    >
+                      🗑️ Clear All
                     </button>
                   </div>
                 </div>

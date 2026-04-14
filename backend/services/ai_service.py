@@ -129,6 +129,12 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
+        resume_link = (
+            "https://drive.google.com/file/d/1tc8Ov5C_itQmuOUY7w8Io3rdKqQ7Dm7Z/view?usp=sharing"
+            if target_role == "Data Engineering"
+            else "https://drive.google.com/file/d/1XBJO2rHhM90jUA0yV2Q-eyAsQxA3NgoN/view?usp=sharing"
+        )
+
         dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
 <p>Hi Name,</p>
@@ -143,7 +149,7 @@ Format to follow EXACTLY (Use HTML tags):
 </ul>
 
 {job_context_html}
-<p>I've included my <a href="https://drive.google.com/file/d/1XBJO2rHhM90jUA0yV2Q-eyAsQxA3NgoN/view?usp=sharing">resume here</a> for your reference. I would be incredibly grateful if you'd be open to referring me for a relevant position, or connecting me with the appropriate hiring team. I would welcome the opportunity to hop on a brief call to discuss further. Looking forward to hearing from you!</p>
+<p>I've included my <a href="{resume_link}">resume here</a> for your reference. I would be incredibly grateful if you'd be open to referring me for a relevant position, or connecting me with the appropriate hiring team. I would welcome the opportunity to hop on a brief call to discuss further. Looking forward to hearing from you!</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
