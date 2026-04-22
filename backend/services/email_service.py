@@ -193,16 +193,16 @@ class EmailService:
             our_email = account.email.lower()
 
             for msg in messages[1:]:  # Skip first message (our sent email)
-                label_ids = msg.get("labelIds", [])
                 headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
                 from_addr = headers.get("From", "").lower()
 
-                # Detect reply: either has INBOX label OR is from someone other than us
-                is_inbox = "INBOX" in label_ids
+                # ONLY detect replies from OTHER people.
+                # Do NOT use INBOX label — our own follow-ups in the same thread
+                # can have INBOX label and would be falsely counted as replies.
                 is_from_other = our_email not in from_addr
 
-                if is_inbox or is_from_other:
-                    from_addr = headers.get("From", "")
+                if is_from_other:
+                    from_addr_display = headers.get("From", "")
                     
                     # Extract body
                     body = ""
@@ -217,7 +217,7 @@ class EmailService:
 
                     replies.append({
                         "gmail_message_id": msg.get("id"),
-                        "from": from_addr,
+                        "from": from_addr_display,
                         "content": body,
                         "received_at": headers.get("Date"),
                     })

@@ -215,12 +215,25 @@ Rules:
 4. Don't repeat the same content
 5. If follow-up #1: gentle reminder
 6. Output the email body in valid HTML utilizing <p> and <br> tags where necessary. Include an HTML sign-off matching the original sender. Do NOT use markdown.
-7. NEVER output placeholders like [Date] or [Company]. Always write naturally or extract the exact values from the Original email provided above.
+7. ABSOLUTELY NEVER use placeholders like [Date], [Company], [Role], [Recipient Name], [Your Name], or any text wrapped in square brackets []. Instead, extract the actual company name, role, and sender name from the Original email above and use them directly. If you cannot find a value, omit that reference entirely rather than using a placeholder.
 
 Return ONLY the HTML email body text, no JSON, no formatting wrappers.
 """
         try:
-            return self._call_gemini(prompt, model_name=model_name)
+            result = self._call_gemini(prompt, model_name=model_name)
+            # Post-process: strip any remaining [placeholder] artifacts the LLM may have left
+            import re
+            result = re.sub(r'\[Date\]', '', result)
+            result = re.sub(r'\[Company\]', '', result)
+            result = re.sub(r'\[Role\]', '', result)
+            result = re.sub(r'\[Recipient Name\]', '', result)
+            result = re.sub(r'\[Your Name\]', '', result)
+            result = re.sub(r'\[Sender Name\]', '', result)
+            # Clean up any double spaces or orphaned punctuation from removal
+            result = re.sub(r'  +', ' ', result)
+            result = re.sub(r' titled ""', '', result)
+            result = re.sub(r'sent on\s*\.', 'sent previously.', result)
+            return result.strip()
         except Exception as e:
             print(f"Follow-up generation error: {e}")
             if follow_up_number == 1:
