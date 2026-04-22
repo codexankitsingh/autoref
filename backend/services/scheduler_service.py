@@ -41,13 +41,15 @@ class SchedulerService:
                 id="process_followups",
                 replace_existing=True,
             )
-            # Check for inbox replies every 1 minute
-            self.scheduler.add_job(
-                self._check_inbox_replies,
-                IntervalTrigger(minutes=1),
-                id="check_inbox_replies",
-                replace_existing=True,
-            )
+            # DISABLED: Auto reply checking was falsely marking our own follow-ups
+            # as external replies, corrupting the dashboard. User will manually mark
+            # threads as replied from the dashboard instead.
+            # self.scheduler.add_job(
+            #     self._check_inbox_replies,
+            #     IntervalTrigger(minutes=1),
+            #     id="check_inbox_replies",
+            #     replace_existing=True,
+            # )
             # Self-ping to keep Render free tier alive (prevents spin-down)
             self.scheduler.add_job(
                 self._keep_alive_ping,
@@ -56,7 +58,7 @@ class SchedulerService:
                 replace_existing=True,
             )
             self.scheduler.start()
-            print("📅 Scheduler started — follow-ups (5m), replies (1m), keep-alive (14m)")
+            print("📅 Scheduler started — follow-ups (1m), keep-alive (14m). Reply checking: MANUAL.")
 
     def stop(self):
         """Stop the background scheduler."""
@@ -157,30 +159,9 @@ class SchedulerService:
             print(f"📅 Skipping follow-up for thread {thread.id} (replied/closed)")
             return
 
-        # CRITICAL: Fresh Gmail reply check RIGHT BEFORE sending
-        # Prevents race condition where reply arrived between scheduler cycles
-        if thread.gmail_thread_id and thread.sender_account_id:
-            try:
-                fresh_replies = email_service.check_replies(
-                    db=db,
-                    gmail_thread_id=thread.gmail_thread_id,
-                    sender_account_id=thread.sender_account_id,
-                )
-                if fresh_replies:
-                    print(f"📅 ⛔ Last-second reply detected for thread {thread.id}! Aborting follow-up.")
-                    thread.replied = 1
-                    thread.status = "replied"
-                    thread.last_activity_at = datetime.utcnow()
-                    job.status = "cancelled"
-                    # Cancel ALL remaining follow-ups
-                    db.query(FollowUpJob).filter(
-                        FollowUpJob.thread_id == thread.id,
-                        FollowUpJob.status == "pending",
-                    ).update({"status": "cancelled"})
-                    db.commit()
-                    return
-            except Exception as e:
-                print(f"📅 Warning: Pre-send reply check failed for thread {thread.id}: {e}")
+        # NOTE: Automatic pre-send reply checking has been disabled.
+        # It was falsely detecting our own follow-up messages as external replies.
+        # The user will manually mark threads as replied from the dashboard.
 
         # Get original email content
         original_msg = db.query(Message).filter(

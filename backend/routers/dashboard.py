@@ -203,3 +203,52 @@ def debug_trigger_scheduler(db: Session = Depends(get_db)):
             
     except Exception as e:
         return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+
+
+@router.get("/debug/repair_false_replies")
+def repair_false_replies(db: Session = Depends(get_db)):
+    """
+    One-shot repair: Reset all threads that were falsely marked as 'replied'
+    by the broken auto-reply checker. Restores them to their correct follow-up
+    status and re-enables cancelled follow-up jobs.
+    """
+    from models.follow_up_job import FollowUpJob
+
+    # Find all threads marked as replied
+    replied_threads = db.query(EmailThread).filter(
+        EmailThread.replied == 1,
+        EmailThread.status == "replied",
+    ).all()
+
+    repaired = []
+    for thread in replied_threads:
+        follow_up_count = thread.follow_up_count or 0
+
+        # Determine the correct status based on how many follow-ups were sent
+        if follow_up_count >= 1:
+            correct_status = f"follow_up_{follow_up_count}"
+        else:
+            correct_status = "sent"
+
+        # Reset thread
+        thread.replied = 0
+        thread.status = correct_status
+
+        # Re-enable cancelled follow-up jobs for this thread
+        reactivated = db.query(FollowUpJob).filter(
+            FollowUpJob.thread_id == thread.id,
+            FollowUpJob.status == "cancelled",
+            FollowUpJob.follow_up_number > follow_up_count,  # Only future ones
+        ).update({"status": "pending"})
+
+        repaired.append({
+            "thread_id": thread.id,
+            "restored_to": correct_status,
+            "follow_ups_reactivated": reactivated,
+        })
+
+    db.commit()
+    return {
+        "repaired_count": len(repaired),
+        "details": repaired,
+    }
