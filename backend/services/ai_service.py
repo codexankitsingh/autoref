@@ -130,9 +130,9 @@ About the sender (use this to personalize the email):
 """
 
         resume_link = (
-            "https://drive.google.com/file/d/1PorBigNEWodNuyVtVFH5eB5sBiDXAhIy/view?usp=sharing"
+            "https://drive.google.com/file/d/1NimIic50phQlXbFKRggrmViKwoREgcdw/view?usp=sharing"
             if target_role == "Data Engineering"
-            else "https://drive.google.com/file/d/1XBJO2rHhM90jUA0yV2Q-eyAsQxA3NgoN/view?usp=sharing"
+            else "https://drive.google.com/file/d/1IU80vhxiu_zbGNpidX1n4ZAGtENI2JsL/view?usp=sharing"
         )
 
         dynamic_format = f"""
