@@ -7,6 +7,35 @@ This project demonstrates proficiency in building production-ready, AI-integrate
 
 ## 🏗️ Architecture & Tech Stack
 
+```mermaid
+graph TD
+    Client("💻 Next.js Client<br/>(React / Tailwind)")
+    
+    subgraph FastAPI Backend
+        API("⚡ REST API<br/>(Endpoints)")
+        Scheduler("⏱️ APScheduler<br/>(Background Jobs)")
+        ORM("🗄️ SQLAlchemy<br/>(Data Access)")
+    end
+
+    subgraph External Services
+        Gemini("🧠 Google Gemini<br/>(LLM Engine)")
+        Gmail("📧 Gmail API<br/>(OAuth 2.0)")
+    end
+    
+    DB[("SQLite<br/>Database")]
+
+    Client <-->|REST / JSON| API
+    API <--> ORM
+    Scheduler <--> ORM
+    ORM <--> DB
+    
+    API <-->|Prompt / Parse| Gemini
+    API <-->|Send Drafts| Gmail
+    
+    Scheduler -.->|Auto-Send Follow-ups| Gmail
+    Scheduler -.->|Poll Inbox Replies| Gmail
+```
+
 AutoRef is built using a modern decoupled architecture, ensuring scalability, maintainability, and clean separation of concerns.
 
 *   **Frontend (Client):** Next.js, React, Tailwind CSS
