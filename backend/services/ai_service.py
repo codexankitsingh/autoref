@@ -136,17 +136,60 @@ About the sender (use this to personalize the email):
         }
         resume_link = resume_links.get(target_role, resume_links["Backend/SDE"])
 
+        # ── Role-specific bullet category guidance & subject line examples ──
+        role_configs = {
+            "Backend/SDE": {
+                "bullet_guidance": (
+                    '  <li><b>[API Design / System Architecture]:</b> [Extract exactly 1 achievement from my profile related to backend API design, microservices, REST/gRPC, or system architecture. Include metrics like TPS, latency, or uptime if available.]</li>\n'
+                    '  <li><b>[Performance & Scalability]:</b> [Extract exactly 1 achievement related to performance optimization, caching (Redis), database indexing, concurrency handling, or load testing. Include quantified improvements.]</li>\n'
+                    '  <li><b>[Problem Solving & CS Fundamentals]:</b> [Extract exactly 1 achievement from my competitive programming stats (LeetCode Knight / Codeforces Specialist), DSA mastery, or relevant CS coursework that demonstrates strong analytical capability.]</li>'
+                ),
+                "subject_examples": (
+                    f'   - "Codeforces Specialist & IIITG Grad | {role} at {company}"\n'
+                    f'   - "800+ TPS API at p99 <50ms | {role} at {company}"\n'
+                    f'   - "Rakuten Intern | Built auto-healing pipelines | {company} Backend opportunity"'
+                ),
+                "emphasis": "Prioritize highlighting backend systems work: API design, database design, caching strategies, auth systems (JWT/OAuth), and any measurable performance/reliability metrics.",
+            },
+            "Fintech": {
+                "bullet_guidance": (
+                    '  <li><b>[Payment Systems / Ledger Design]:</b> [Extract exactly 1 achievement from my profile related to payment processing, double-entry ledgers, transaction handling, ACID guarantees, or idempotency keys. Include metrics like TPS or error rates if available.]</li>\n'
+                    '  <li><b>[Security & Compliance]:</b> [Extract exactly 1 achievement related to OAuth2, HMAC verification, webhook design with retry/dedup, encryption, audit trails, or compliance-ready failure handling.]</li>\n'
+                    '  <li><b>[Reliability & Observability]:</b> [Extract exactly 1 achievement related to fault tolerance, rate limiting, load testing (k6/JMeter), rollback mechanisms, monitoring, or data integrity guarantees.]</li>'
+                ),
+                "subject_examples": (
+                    f'   - "Built payment-grade ledger API (800+ TPS) | {role} at {company}"\n'
+                    f'   - "ACID Transactions & Idempotent APIs | {role} at {company}"\n'
+                    f'   - "Webhook infra with HMAC & exponential backoff | {company} Fintech opportunity"'
+                ),
+                "emphasis": "Prioritize highlighting fintech-relevant work: payment processing, ACID transactions, idempotency, webhook delivery, HMAC verification, double-entry accounting, fraud prevention, regulatory compliance, and any work with money-movement systems. Frame backend projects through a financial reliability lens.",
+            },
+            "Data Engineering": {
+                "bullet_guidance": (
+                    '  <li><b>[Data Pipeline Architecture]:</b> [Extract exactly 1 achievement from my profile related to ETL/ELT pipelines, Airflow DAGs, data ingestion at scale, or pipeline orchestration. Include volume metrics (GB/day) if available.]</li>\n'
+                    '  <li><b>[Spark & Cloud Optimization]:</b> [Extract exactly 1 achievement related to PySpark optimization, Dataproc/Databricks, partitioning strategies, query optimization, or cloud cost reduction. Include quantified improvements.]</li>\n'
+                    '  <li><b>[Data Modeling & Quality]:</b> [Extract exactly 1 achievement related to SCD Type 2, idempotent processing, BigQuery/data warehouse design, data quality guarantees, or historical consistency.]</li>'
+                ),
+                "subject_examples": (
+                    f'   - "Rakuten Intern | 150 GB/day ingestion pipeline | {role} at {company}"\n'
+                    f'   - "30% cloud cost reduction via Spark optimization | {company} DE opportunity"\n'
+                    f'   - "Built LLM-powered RCA agent for Airflow | {role} at {company}"'
+                ),
+                "emphasis": "Prioritize highlighting data engineering work: large-scale data pipelines, Spark/PySpark, Airflow orchestration, data warehouse design, SCD strategies, idempotent processing, and cloud infrastructure optimization (GCP/AWS). Frame everything through a data reliability and scale lens.",
+            },
+        }
+
+        config = role_configs.get(target_role, role_configs["Backend/SDE"])
+
         dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
 <p>Hi Name,</p>
 
-<p>I'm Ankit, a [Current Role from profile] at <b>[Current Company]</b> (graduating from IIIT Gwalior in May 2026). I'm reaching out regarding the {role} opportunity at {company}, as my experience with [Specific capability from your profile] directly aligns with your focus on [Specific technical challenge or goal from the JD].</p>
+<p>I'm Ankit, a [Current Role from profile] at <b>[Current Company]</b> (IIIT Gwalior'26). I'm reaching out regarding the {role} opportunity at {company}, as my experience with [Specific capability from your profile] directly aligns with your focus on [Specific technical challenge or goal from the JD].</p>
 
 <p>Quick context on why I'd be a strong fit:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
-  <li><b>[Category 1 matching JD keywords, e.g., Systems Engineering / Data Pipelines / Microservices]:</b> [Extract and rewrite exactly 1 achievement/project from my profile that perfectly matches this category. Include metrics if available.]</li>
-  <li><b>[Category 2 matching JD keywords, e.g., Performance Optimization / Architecture]:</b> [Extract and rewrite exactly 1 achievement/project from my profile that perfectly matches this category.]</li>
-  <li><b>[Category 3 matching JD keywords, e.g., Problem Solving / Core Tech Stack]:</b> [Extract and rewrite exactly 1 achievement from my profile, such as my LeetCode/Codeforces stats or specific tooling mastery, that proves my capability.]</li>
+{config["bullet_guidance"]}
 </ul>
 
 {job_context_html}
@@ -172,15 +215,16 @@ About Me (The Sender):
 
 {dynamic_format}
 
+Role-specific emphasis:
+{config["emphasis"]}
+
 Rules:
 1. Preserve the EXACT HTML structure above. Do NOT add extra paragraphs, greetings, or filler.
 2. The 1-sentence personalization MUST bridge a specific need in the JD with a specific capability in my profile.
 3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! If the JD asks for C++, explicitly highlight my C++ skills. If it asks for PySpark, highlight PySpark. Select the projects from my profile that are the BEST fit for this specific job.
 4. Replace bracketed placeholders like [Category 1] with an actionable, bolded category name related to the bullet point (e.g. <b>At Rakuten (Systems):</b> or <b>DSA & Algorithms:</b>).
 5. Set the subject line strictly to a short, punchy technical headline. Example forms:
-   - "Codeforces Specialist & IIITG Grad | {role} at {company}"
-   - "Built auto-healing pipelines at Rakuten | {company} SWE opportunity"
-   - "Rakuten Intern | 40% cost reduction via Airflow | {company} DE opportunity"
+{config["subject_examples"]}
 
 Return ONLY a JSON object with exactly these keys:
 {{
