@@ -113,5 +113,12 @@ The application will be accessible at `http://localhost:3000`.
 | :---: | :---: | :---: |
 | ![Outreach Tracking Dashboard](assets/dashboard_page.png) | ![New Outreach Generator](assets/home_page.png) | ![AI & Account Settings](assets/settings_page.png) |
 
+## 📄 Resume
+
+| Target Role | Link |
+| :--- | :--- |
+| **SDE / Backend Engineer** | [View Resume (Google Drive)](https://drive.google.com/file/d/1-wUNnd1ZFThJ5NzPP7NJtFYHnUGZsBgC/view?usp=sharing) |
+| **Fintech / Payment Infrastructure** | [View Resume (Google Drive)](https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing) |
+
 ---
 *Developed with a focus on engineering maturity, clean architecture, and practical AI application.*
