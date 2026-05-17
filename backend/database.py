@@ -32,6 +32,21 @@ def get_db():
 
 
 def init_db():
-    """Create all tables."""
+    """Create all tables. Auto-resets if schema is outdated (one-time migration)."""
     from models import user, mail_account, job_application, recipient, email_thread, message, follow_up_job, reply  # noqa
+    from sqlalchemy import inspect
+
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+
+    # One-time migration: if old schema exists (users table without password_hash),
+    # drop everything and recreate with the new auth schema.
+    if "users" in existing_tables:
+        columns = [col["name"] for col in inspector.get_columns("users")]
+        if "password_hash" not in columns:
+            print("⚠️  Old schema detected (no auth columns). Resetting database for v1.0...")
+            Base.metadata.drop_all(bind=engine)
+            print("🗑️  Old tables dropped.")
+
     Base.metadata.create_all(bind=engine)
+
