@@ -109,7 +109,7 @@ def send_email(
 
 @router.get("/auth/gmail")
 def gmail_auth(current_user: User = Depends(get_approved_user)):
-    """Initiate Gmail OAuth2 flow."""
+    """Initiate Gmail OAuth2 flow. Passes user_id in the OAuth state."""
     settings = get_settings()
     if not settings.google_client_id or settings.google_client_id == "your-google-client-id":
         raise HTTPException(
@@ -118,20 +118,21 @@ def gmail_auth(current_user: User = Depends(get_approved_user)):
         )
 
     try:
-        auth_url = email_service.get_auth_url()
+        auth_url = email_service.get_auth_url(state=str(current_user.id))
         return {"auth_url": auth_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate auth URL: {str(e)}")
 
 
 @router.get("/auth/gmail/callback")
-def gmail_callback(code: str, db: Session = Depends(get_db)):
-    """Handle Gmail OAuth2 callback."""
+def gmail_callback(code: str, state: str = "", db: Session = Depends(get_db)):
+    """Handle Gmail OAuth2 callback. Uses state param to identify the user."""
     try:
-        result = email_service.handle_oauth_callback(code, db)
+        user_id = int(state) if state else None
+        result = email_service.handle_oauth_callback(code, db, user_id=user_id)
         settings = get_settings()
-        # Redirect to frontend settings page with success message
         return RedirectResponse(url=f"{settings.frontend_url}/settings?gmail_connected={result['email']}")
     except Exception as e:
         settings = get_settings()
         return RedirectResponse(url=f"{settings.frontend_url}/settings?gmail_error={str(e)}")
+

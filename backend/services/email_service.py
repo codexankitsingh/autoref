@@ -47,17 +47,18 @@ class EmailService:
         flow.redirect_uri = self.settings.google_redirect_uri
         return flow
 
-    def get_auth_url(self) -> str:
-        """Generate Gmail OAuth authorization URL."""
+    def get_auth_url(self, state: str = "") -> str:
+        """Generate Gmail OAuth authorization URL with optional state."""
         flow = self.get_oauth_flow()
         auth_url, _ = flow.authorization_url(
             access_type="offline",
             include_granted_scopes="true",
             prompt="consent",
+            state=state,
         )
         return auth_url
 
-    def handle_oauth_callback(self, code: str, db: Session) -> dict:
+    def handle_oauth_callback(self, code: str, db: Session, user_id: int = None) -> dict:
         """Handle OAuth callback, exchange code for tokens, save account."""
         flow = self.get_oauth_flow()
         flow.fetch_token(code=code)
@@ -68,14 +69,19 @@ class EmailService:
         profile = service.users().getProfile(userId="me").execute()
         email_address = profile.get("emailAddress", "")
 
-        # Find first user (single-user MVP)
+        # Find the user who initiated the OAuth flow
         from models.user import User
-        user = db.query(User).first()
+        user = None
+        if user_id:
+            user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            # Create a default user
-            user = User(name="AutoRef User", email=email_address)
-            db.add(user)
-            db.flush()
+            # Fallback: try to match by email
+            user = db.query(User).filter(User.email == email_address).first()
+        if not user:
+            # Last resort: first user (for backward compatibility)
+            user = db.query(User).first()
+        if not user:
+            raise ValueError("No user found. Please register first.")
 
         # Save or update mail account
         account = db.query(MailAccount).filter(MailAccount.email == email_address).first()
