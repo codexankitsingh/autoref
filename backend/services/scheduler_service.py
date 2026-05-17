@@ -175,9 +175,16 @@ class SchedulerService:
             return
 
         # Generate follow-up email using AI
+        # Pass the original email's sent date so the LLM can reference it
+        # instead of hallucinating a [Date] placeholder
+        original_date_str = ""
+        if original_msg.sent_at:
+            original_date_str = original_msg.sent_at.strftime("%B %d, %Y")  # e.g. "May 14, 2026"
+
         follow_up_body = ai_service.generate_follow_up(
             original_email=original_msg.content,
             follow_up_number=job.follow_up_number,
+            original_sent_date=original_date_str,
         )
 
         # Send the follow-up
