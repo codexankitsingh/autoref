@@ -309,6 +309,7 @@ export default function NewOutreachPage() {
                 >
                   <option value="Backend/SDE">Backend Engineering / SDE</option>
                   <option value="Data Engineering">Data Engineering</option>
+                  <option value="Fintech">Fintech / Payments</option>
                 </select>
               </div>
 

@@ -129,11 +129,12 @@ About the sender (use this to personalize the email):
 {user_profile}
 """
 
-        resume_link = (
-            "https://drive.google.com/file/d/1NimIic50phQlXbFKRggrmViKwoREgcdw/view?usp=sharing"
-            if target_role == "Data Engineering"
-            else "https://drive.google.com/file/d/1IU80vhxiu_zbGNpidX1n4ZAGtENI2JsL/view?usp=sharing"
-        )
+        resume_links = {
+            "Data Engineering": "https://drive.google.com/file/d/1NimIic50phQlXbFKRggrmViKwoREgcdw/view?usp=sharing",
+            "Fintech": "https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing",
+            "Backend/SDE": "https://drive.google.com/file/d/1-wUNnd1ZFThJ5NzPP7NJtFYHnUGZsBgC/view?usp=sharing",
+        }
+        resume_link = resume_links.get(target_role, resume_links["Backend/SDE"])
 
         dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
