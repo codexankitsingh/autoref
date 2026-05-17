@@ -16,3 +16,6 @@ httpx==0.28.1
 cryptography==44.0.0
 aiosqlite==0.20.0
 psycopg2-binary>=2.9.9
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+

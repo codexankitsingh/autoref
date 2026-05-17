@@ -4,17 +4,26 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from schemas import ScheduleFollowupsRequest, StopFollowupsRequest
+from models.user import User
 from models.email_thread import EmailThread
 from models.follow_up_job import FollowUpJob
 from services.scheduler_service import scheduler_service
+from dependencies import get_approved_user
 
 router = APIRouter(prefix="/api", tags=["followup"])
 
 
 @router.post("/schedule-followups")
-def schedule_followups(request: ScheduleFollowupsRequest, db: Session = Depends(get_db)):
-    """Schedule follow-up emails for a thread."""
-    thread = db.query(EmailThread).filter(EmailThread.id == request.thread_id).first()
+def schedule_followups(
+    request: ScheduleFollowupsRequest,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Schedule follow-up emails for a thread (only if owned by current user)."""
+    thread = db.query(EmailThread).filter(
+        EmailThread.id == request.thread_id,
+        EmailThread.user_id == current_user.id,
+    ).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
 
@@ -22,7 +31,6 @@ def schedule_followups(request: ScheduleFollowupsRequest, db: Session = Depends(
     thread.max_follow_ups = request.max_follow_ups
     db.commit()
 
-    # Schedule via scheduler service (stub in Phase 1)
     scheduler_service.schedule_follow_ups(
         thread_id=request.thread_id,
         interval_days=request.interval_days,
@@ -33,13 +41,19 @@ def schedule_followups(request: ScheduleFollowupsRequest, db: Session = Depends(
 
 
 @router.post("/stop-followups")
-def stop_followups(request: StopFollowupsRequest, db: Session = Depends(get_db)):
-    """Stop all pending follow-ups for a thread."""
-    thread = db.query(EmailThread).filter(EmailThread.id == request.thread_id).first()
+def stop_followups(
+    request: StopFollowupsRequest,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Stop all pending follow-ups for a thread (only if owned by current user)."""
+    thread = db.query(EmailThread).filter(
+        EmailThread.id == request.thread_id,
+        EmailThread.user_id == current_user.id,
+    ).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    # Cancel pending follow-up jobs
     db.query(FollowUpJob).filter(
         FollowUpJob.thread_id == request.thread_id,
         FollowUpJob.status == "pending",

@@ -6,23 +6,27 @@ from database import get_db
 from schemas import GenerateEmailRequest, GenerateEmailResponse, ParsedJD
 from services.ai_service import ai_service
 from models.user import User
+from dependencies import get_approved_user
 
 router = APIRouter(prefix="/api", tags=["generate"])
 
 
 @router.post("/generate-email", response_model=GenerateEmailResponse)
-def generate_email(request: GenerateEmailRequest, db: Session = Depends(get_db)):
+def generate_email(
+    request: GenerateEmailRequest,
+    current_user: User = Depends(get_approved_user),
+):
     """
     Parse a JD and generate a tailored referral email.
+    Uses the current user's profile_text for personalization.
     """
     try:
         # Parse JD
         parsed = ai_service.parse_jd(request.jd_text, model_name=request.model)
         parsed_jd = ParsedJD(**parsed)
 
-        # Get user profile (single-user MVP: use first user or env config)
-        user = db.query(User).first()
-        user_profile = user.profile_text if user else ""
+        # Use current user's profile for AI context
+        user_profile = current_user.profile_text or ""
 
         # Generate email
         email_data = ai_service.generate_email(

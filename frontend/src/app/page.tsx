@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
+import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
 
 interface ParsedJD {
@@ -178,6 +179,7 @@ export default function NewOutreachPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
@@ -452,5 +454,6 @@ export default function NewOutreachPage() {
         )}
       </main>
     </div>
+    </AuthGuard>
   );
 }

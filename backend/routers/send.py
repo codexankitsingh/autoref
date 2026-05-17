@@ -6,6 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from schemas import SendEmailRequest, SendEmailResponse
+from models.user import User
 from models.job_application import JobApplication
 from models.recipient import Recipient
 from models.email_thread import EmailThread
@@ -13,16 +14,22 @@ from models.message import Message
 from services.email_service import email_service
 from services.scheduler_service import scheduler_service
 from config import get_settings
+from dependencies import get_approved_user
 
 router = APIRouter(prefix="/api", tags=["send"])
 
 
 @router.post("/send-email", response_model=SendEmailResponse)
-def send_email(request: SendEmailRequest, db: Session = Depends(get_db)):
-    """Send an email and create tracking records."""
+def send_email(
+    request: SendEmailRequest,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Send an email and create tracking records, scoped to current user."""
     try:
-        # 1. Create JobApplication
+        # 1. Create JobApplication (scoped to user)
         application = JobApplication(
+            user_id=current_user.id,
             company=request.company,
             role=request.role,
             jd_text=request.jd_text or "",
@@ -52,8 +59,9 @@ def send_email(request: SendEmailRequest, db: Session = Depends(get_db)):
             body=request.email_body,
         )
 
-        # 4. Create EmailThread
+        # 4. Create EmailThread (scoped to user)
         thread = EmailThread(
+            user_id=current_user.id,
             application_id=application.id,
             recipient_id=recipient.id,
             sender_account_id=request.sender_account_id,
@@ -100,7 +108,7 @@ def send_email(request: SendEmailRequest, db: Session = Depends(get_db)):
 # ── Gmail OAuth Routes ──
 
 @router.get("/auth/gmail")
-def gmail_auth():
+def gmail_auth(current_user: User = Depends(get_approved_user)):
     """Initiate Gmail OAuth2 flow."""
     settings = get_settings()
     if not settings.google_client_id or settings.google_client_id == "your-google-client-id":

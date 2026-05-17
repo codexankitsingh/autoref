@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
+import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
 
 function SettingsContent() {
@@ -118,6 +119,7 @@ function SettingsContent() {
   }
 
   return (
+    <AuthGuard>
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
@@ -303,6 +305,7 @@ function SettingsContent() {
         )}
       </main>
     </div>
+    </AuthGuard>
   );
 }
 

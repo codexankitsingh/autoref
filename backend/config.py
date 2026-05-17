@@ -21,10 +21,14 @@ class Settings(BaseSettings):
     app_secret_key: str = "change-this-in-production"
     frontend_url: str = "http://localhost:3000"
 
-    # User Profile (single-user MVP)
-    user_name: str = ""
-    user_email: str = ""
-    user_profile: str = ""  # Pre-stored resume/profile text for AI context
+    # JWT Authentication
+    jwt_secret_key: str = "change-this-jwt-secret-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 1440  # 24 hours
+    jwt_refresh_token_expire_days: int = 7
+
+    # Admin email — first registered user OR this email gets auto-approved as admin
+    admin_email: str = ""
 
     class Config:
         env_file = ".env"
@@ -34,3 +38,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+

@@ -8,6 +8,7 @@ class EmailThread(Base):
     __tablename__ = "email_threads"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     application_id = Column(Integer, ForeignKey("job_applications.id"), nullable=False)
     recipient_id = Column(Integer, ForeignKey("recipients.id"), nullable=False)
     sender_account_id = Column(Integer, ForeignKey("mail_accounts.id"), nullable=False)

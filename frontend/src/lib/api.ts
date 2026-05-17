@@ -4,15 +4,30 @@ type RequestOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  skipAuth?: boolean;
 };
 
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('autoref_token');
+}
+
 async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, skipAuth = false } = options;
+
+  const authHeaders: Record<string, string> = {};
+  if (!skipAuth) {
+    const token = getToken();
+    if (token) {
+      authHeaders['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   const config: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...headers,
     },
   };
@@ -23,6 +38,17 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
 
   const res = await fetch(`${API_BASE}${path}`, config);
 
+  if (res.status === 401) {
+    // Token expired or invalid — clear auth and redirect to login
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('autoref_token');
+      localStorage.removeItem('autoref_refresh_token');
+      localStorage.removeItem('autoref_user');
+      window.location.href = '/login';
+    }
+    throw new Error('Session expired. Please log in again.');
+  }
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: 'Unknown error' }));
     throw new Error(error.detail || `API error: ${res.status}`);
@@ -31,9 +57,46 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   return res.json();
 }
 
+// ── Auth Types ──
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  avatar_url: string | null;
+  is_approved: boolean;
+  is_admin: boolean;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
 // ── API Methods ──
 
 export const api = {
+  // Auth
+  register: (data: { name: string; email: string; password: string }) =>
+    apiRequest<TokenResponse>('/api/auth/register', { method: 'POST', body: data, skipAuth: true }),
+
+  login: (data: { email: string; password: string }) =>
+    apiRequest<TokenResponse>('/api/auth/login', { method: 'POST', body: data, skipAuth: true }),
+
+  googleLogin: (data: { credential: string }) =>
+    apiRequest<TokenResponse>('/api/auth/google', { method: 'POST', body: data, skipAuth: true }),
+
+  getMe: () =>
+    apiRequest<AuthUser>('/api/auth/me'),
+
+  getPendingUsers: () =>
+    apiRequest<Array<{ id: number; name: string; email: string; avatar_url: string | null; created_at: string }>>('/api/auth/pending-users'),
+
+  approveUser: (data: { user_id: number; approved: boolean }) =>
+    apiRequest('/api/auth/approve-user', { method: 'POST', body: data }),
+
   // Health
   health: () => apiRequest<{ status: string }>('/health'),
 

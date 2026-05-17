@@ -27,3 +27,4 @@ build/
 coverage/
 .npm/
 client_secret_*.json
+backend/autoref_data_backup.json

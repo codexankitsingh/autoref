@@ -5,10 +5,12 @@ from typing import Optional
 
 from database import get_db
 from schemas import OutreachRecord, DashboardResponse, UpdateStatusRequest
+from models.user import User
 from models.email_thread import EmailThread
 from models.job_application import JobApplication
 from models.recipient import Recipient
 from models.mail_account import MailAccount
+from dependencies import get_approved_user
 
 router = APIRouter(prefix="/api", tags=["dashboard"])
 
@@ -22,11 +24,13 @@ VALID_STATUSES = [
 def get_dashboard(
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    current_user: User = Depends(get_approved_user),
     db: Session = Depends(get_db),
 ):
-    """Get all outreach records for the dashboard."""
+    """Get outreach records for the current user's dashboard."""
     query = (
         db.query(EmailThread)
+        .filter(EmailThread.user_id == current_user.id)
         .options(
             joinedload(EmailThread.application),
             joinedload(EmailThread.recipient),
@@ -67,9 +71,16 @@ def get_dashboard(
 
 
 @router.post("/update-status")
-def update_status(request: UpdateStatusRequest, db: Session = Depends(get_db)):
-    """Manually update thread status."""
-    thread = db.query(EmailThread).filter(EmailThread.id == request.thread_id).first()
+def update_status(
+    request: UpdateStatusRequest,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Manually update thread status (only if owned by current user)."""
+    thread = db.query(EmailThread).filter(
+        EmailThread.id == request.thread_id,
+        EmailThread.user_id == current_user.id,
+    ).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
 
@@ -88,12 +99,16 @@ def update_status(request: UpdateStatusRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/dashboard/stats")
-def get_dashboard_stats(db: Session = Depends(get_db)):
-    """Get summary statistics for the dashboard."""
-    total = db.query(EmailThread).count()
-    sent = db.query(EmailThread).filter(EmailThread.status != "draft").count()
-    replied = db.query(EmailThread).filter(EmailThread.replied == 1).count()
-    interviews = db.query(EmailThread).filter(EmailThread.interview_scheduled == 1).count()
+def get_dashboard_stats(
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Get summary statistics for the current user's dashboard."""
+    base = db.query(EmailThread).filter(EmailThread.user_id == current_user.id)
+    total = base.count()
+    sent = base.filter(EmailThread.status != "draft").count()
+    replied = base.filter(EmailThread.replied == 1).count()
+    interviews = base.filter(EmailThread.interview_scheduled == 1).count()
     return {
         "total": total,
         "sent": sent,
@@ -103,9 +118,16 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
 
 
 @router.delete("/thread/{thread_id}")
-def delete_thread(thread_id: int, db: Session = Depends(get_db)):
-    """Delete an outreach thread."""
-    thread = db.query(EmailThread).filter(EmailThread.id == thread_id).first()
+def delete_thread(
+    thread_id: int,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Delete an outreach thread (only if owned by current user)."""
+    thread = db.query(EmailThread).filter(
+        EmailThread.id == thread_id,
+        EmailThread.user_id == current_user.id,
+    ).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     db.delete(thread)
@@ -120,7 +142,11 @@ class SyncSheetsRequest(BaseModel):
     spreadsheet_id: Optional[str] = None
 
 @router.post("/dashboard/sync-sheets")
-def sync_to_sheets(request: SyncSheetsRequest, db: Session = Depends(get_db)):
+def sync_to_sheets(
+    request: SyncSheetsRequest,
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
     """Sync all outreach records to a Google Sheet."""
     from services.sheets_service import sheets_service
     try:
@@ -136,119 +162,3 @@ def sync_to_sheets(request: SyncSheetsRequest, db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to sync to sheets: {str(e)}")
-
-
-@router.get("/debug/followups")
-def debug_followups(db: Session = Depends(get_db)):
-    """Debug: show pending/failed follow-up jobs."""
-    from models.follow_up_job import FollowUpJob
-    from datetime import datetime
-
-    pending = db.query(FollowUpJob).filter(FollowUpJob.status == "pending").all()
-    failed = db.query(FollowUpJob).filter(FollowUpJob.status == "failed").all()
-
-    return {
-        "now_utc": str(datetime.utcnow()),
-        "pending_count": len(pending),
-        "failed_count": len(failed),
-        "pending_jobs": [
-            {
-                "id": j.id,
-                "thread_id": j.thread_id,
-                "follow_up_number": j.follow_up_number,
-                "scheduled_time": str(j.scheduled_time),
-                "status": j.status,
-            }
-            for j in pending[:10]
-        ],
-        "failed_jobs": [
-            {
-                "id": j.id,
-                "thread_id": j.thread_id,
-                "follow_up_number": j.follow_up_number,
-                "status": j.status,
-            }
-            for j in failed[:10]
-        ],
-    }
-
-@router.get("/debug/trigger_scheduler")
-def debug_trigger_scheduler(db: Session = Depends(get_db)):
-    """Debug: manually run the follow-up logic to see what happens."""
-    from services.scheduler_service import scheduler_service
-    from models.follow_up_job import FollowUpJob
-    from datetime import datetime
-    import traceback
-    
-    try:
-        now_naive = datetime.utcnow()
-        due_jobs = db.query(FollowUpJob).filter(
-            FollowUpJob.status == "pending",
-            FollowUpJob.scheduled_time <= now_naive,
-        ).all()
-        
-        if not due_jobs:
-            return {"status": "success", "message": "No jobs due", "now": now_naive}
-            
-        job = due_jobs[0]
-        
-        # Test executing
-        try:
-            scheduler_service._execute_follow_up(db, job)
-            db.commit()
-            return {"status": "success", "message": f"Processed job {job.id}", "new_status": job.status}
-        except Exception as e:
-            db.rollback()
-            return {"status": "error_exec", "error": str(e), "traceback": traceback.format_exc()}
-            
-    except Exception as e:
-        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
-
-
-@router.get("/debug/repair_false_replies")
-def repair_false_replies(db: Session = Depends(get_db)):
-    """
-    One-shot repair: Reset all threads that were falsely marked as 'replied'
-    by the broken auto-reply checker. Restores them to their correct follow-up
-    status and re-enables cancelled follow-up jobs.
-    """
-    from models.follow_up_job import FollowUpJob
-
-    # Find all threads marked as replied
-    replied_threads = db.query(EmailThread).filter(
-        EmailThread.replied == 1,
-        EmailThread.status == "replied",
-    ).all()
-
-    repaired = []
-    for thread in replied_threads:
-        follow_up_count = thread.follow_up_count or 0
-
-        # Determine the correct status based on how many follow-ups were sent
-        if follow_up_count >= 1:
-            correct_status = f"follow_up_{follow_up_count}"
-        else:
-            correct_status = "sent"
-
-        # Reset thread
-        thread.replied = 0
-        thread.status = correct_status
-
-        # Re-enable cancelled follow-up jobs for this thread
-        reactivated = db.query(FollowUpJob).filter(
-            FollowUpJob.thread_id == thread.id,
-            FollowUpJob.status == "cancelled",
-            FollowUpJob.follow_up_number > follow_up_count,  # Only future ones
-        ).update({"status": "pending"})
-
-        repaired.append({
-            "thread_id": thread.id,
-            "restored_to": correct_status,
-            "follow_ups_reactivated": reactivated,
-        })
-
-    db.commit()
-    return {
-        "repaired_count": len(repaired),
-        "details": repaired,
-    }

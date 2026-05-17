@@ -3,6 +3,42 @@ from typing import Optional
 from datetime import datetime
 
 
+# ── Authentication ──
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: "AuthUserResponse"
+
+class AuthUserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    avatar_url: Optional[str] = None
+    is_approved: bool
+    is_admin: bool
+
+    class Config:
+        from_attributes = True
+
+class GoogleLoginRequest(BaseModel):
+    credential: str  # Google ID token from frontend
+
+class ApproveUserRequest(BaseModel):
+    user_id: int
+    approved: bool = True
+
+
 # ── JD & Email Generation ──
 
 class GenerateEmailRequest(BaseModel):

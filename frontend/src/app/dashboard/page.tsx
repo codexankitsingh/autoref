@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
 
 interface OutreachRecord {
@@ -137,6 +138,7 @@ export default function DashboardPage() {
   // ... rest
 
   return (
+    <AuthGuard>
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
@@ -297,5 +299,6 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+    </AuthGuard>
   );
 }
