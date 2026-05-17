@@ -154,7 +154,7 @@ Navigate to `http://localhost:3000` to access the application.
 | Target Engineering Domain | Resume Link |
 | :--- | :--- |
 | **SDE / Backend Engineering** | [View PDF (Google Drive)](https://drive.google.com/file/d/1-wUNnd1ZFThJ5NzPP7NJtFYHnUGZsBgC/view?usp=sharing) |
-| **Fintech / Payment Infrastructure** | [View PDF (Google Drive)](https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing) |
+
 
 ---
 <div align="center">
