@@ -2,11 +2,15 @@
 Email Service — Gmail API integration.
 Handles OAuth2 flow, email sending, and reply checking.
 """
+import os
 import base64
 import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+
+# Prevent "Scope has changed" errors from Google OAuth
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
