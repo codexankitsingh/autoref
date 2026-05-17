@@ -12,7 +12,8 @@ graph TD
     Client("💻 Next.js Client<br/>(React / Tailwind)")
     
     subgraph FastAPI Backend
-        API("⚡ REST API<br/>(Endpoints)")
+        Auth("🔐 Auth Router<br/>(JWT / Google ID)")
+        API("⚡ REST API<br/>(Protected Endpoints)")
         Scheduler("⏱️ APScheduler<br/>(Background Jobs)")
         ORM("🗄️ SQLAlchemy<br/>(Data Access)")
     end
@@ -20,11 +21,16 @@ graph TD
     subgraph External Services
         Gemini("🧠 Google Gemini<br/>(LLM Engine)")
         Gmail("📧 Gmail API<br/>(OAuth 2.0)")
+        GoogleAuth("👤 Google Identity<br/>(Sign-In)")
     end
     
     DB[("SQLite<br/>Database")]
 
-    Client <-->|REST / JSON| API
+    Client <-->|Google ID Token| GoogleAuth
+    Client <-->|Login / Register| Auth
+    Client <-->|Bearer JWT| API
+    
+    Auth <--> ORM
     API <--> ORM
     Scheduler <--> ORM
     ORM <--> DB
@@ -40,12 +46,12 @@ AutoRef is built using a modern decoupled architecture, ensuring scalability, ma
 
 *   **Frontend (Client):** Next.js, React, Tailwind CSS
     *   Responsive, component-driven UI for managing outreach pipelines.
-    *   Client-side state management and asynchronous API polling.
+    *   Multi-tenant AuthContext handling JWT lifecycle, route guards, and Google Sign-In.
 *   **Backend (API & Background Jobs):** FastAPI, Python 3
-    *   High-performance asynchronous REST API.
+    *   High-performance asynchronous REST API with dependency-injected 3-tier auth (Authenticated → Approved → Admin).
     *   `APScheduler` / Background Tasks for automated follow-up scheduling and inbox monitoring.
 *   **Database:** SQLite / SQLAlchemy (ORM)
-    *   Relational data modeling for tracking job applications, email statuses, and user profiles.
+    *   Relational data modeling with multi-tenant row-level isolation (`user_id` foreign keys on all data tables).
 *   **AI Engine Integration:** Google Gemini API (Flash/Pro)
     *   Advanced prompt engineering to dynamically parse Job Descriptions and synthesize personalized, high-converting B2B emails based on user resumes.
 *   **External Integrations:** Gmail API (OAuth 2.0)
@@ -53,10 +59,11 @@ AutoRef is built using a modern decoupled architecture, ensuring scalability, ma
 
 ## ✨ Core Engineering Features
 
+*   **Enterprise-Grade Auth & Multi-Tenancy:** Secure JWT-based authentication with bcrypt hashing, Google Sign-In integration, and an Admin approval flow to prevent platform abuse. All user data is strictly scoped and isolated.
 *   **Context-Aware Email Generation:** Utilizes Gemini AI to parse complex job descriptions (Company, Role, Skills) and weave them seamlessly with the user's professional profile, ensuring highly tailored outreach.
 *   **Intelligent Follow-up Engine:** Implements a background scheduler that automatically dispatches follow-up emails if no reply is detected within a configurable timeframe (e.g., 3 days).
 *   **Automated Reply Detection:** Periodically monitors the connected Gmail inbox to detect replies. Upon detection, it automatically updates the application state and halts any pending follow-up jobs to prevent double-emailing.
-*   **Secure OAuth Authentication:** Manages Google OAuth 2.0 flows securely, storing encrypted refresh tokens to maintain persistent, authenticated API access without exposing user credentials.
+*   **Secure OAuth Authentication:** Manages Google OAuth 2.0 flows securely, passing state parameters across redirects and storing encrypted refresh tokens to maintain persistent API access.
 *   **Stateful Tracking Dashboard:** Provides a real-time, persistent view of the outreach pipeline (Pending, Sent, Replied, Followed Up), with capabilities to sync analytics to external platforms like Google Sheets.
 
 ## 🚀 Getting Started
