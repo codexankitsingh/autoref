@@ -197,7 +197,8 @@ Format to follow EXACTLY (Use HTML tags):
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
-+91 9451184789</p>
++91 9451184789<br>
+<a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/" style="color: #2563eb; text-decoration: none;">LinkedIn</a> | <a href="https://www.github.com/codexankitsingh" style="color: #2563eb; text-decoration: none;">GitHub</a></p>
 """
 
         prompt = f"""You are writing a highly targeted cold outreach email for a recruiter at {company}.
