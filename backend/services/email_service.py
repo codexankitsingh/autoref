@@ -166,11 +166,10 @@ class EmailService:
         message["from"] = account.email
         message["subject"] = subject
         
-        # Inject tracking pixel if tracking_id is provided (Phase 2)
-        if tracking_id:
-            tracking_pixel = f'<img src="https://autoref-zz6o.onrender.com/api/track/open/{tracking_id}" width="1" height="1" style="display:none" />'
-            body = f"{body}\n{tracking_pixel}"
-            
+        # Tracking pixel injection REMOVED: Email clients (Apple Mail, Gmail) 
+        # auto-proxy images, causing false positive opens, and strict enterprise
+        # spam filters aggressively flag 1x1 transparent pixels as spam.
+        # Deliverability is prioritized over open tracking.
         msg_body = MIMEText(body, "html")
         message.attach(msg_body)
 
