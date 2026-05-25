@@ -243,7 +243,7 @@ Return ONLY a JSON object with exactly these keys:
             print(f"Email generation error: {e}")
             raise Exception(f"Failed to generate custom email body: {e}")
 
-    def generate_follow_up(self, original_email: str, follow_up_number: int, model_name: str = "gemini-2.5-flash-lite", original_sent_date: str = "") -> str:
+    def generate_follow_up(self, original_email: str, follow_up_number: int, model_name: str = "gemini-2.5-flash-lite", original_sent_date: str = "", open_count: int = 0) -> str:
         """
         Generate a follow-up email based on the original.
         Returns: follow-up email body (<80 words)
@@ -253,11 +253,21 @@ Return ONLY a JSON object with exactly these keys:
         if original_sent_date:
             date_context = f"\nThe original email was sent on: {original_sent_date}\n"
 
+        # Open-rate awareness context
+        open_context = ""
+        if open_count > 0:
+            open_context = "CRITICAL INSIGHT: The recruiter opened the previous email but did not reply. They likely saw it on their phone while busy and forgot to respond when they got to their desk. Frame the follow-up as a quick bump to the top of their inbox in case they missed it earlier or were on the go."
+        else:
+            open_context = "CRITICAL INSIGHT: The recruiter has NOT opened the previous email yet. Try a slightly different, catchy angle to get their attention, while remaining highly professional."
+
         prompt = f"""Write a polite follow-up email (follow-up #{follow_up_number}).
 
 Original email that was sent:
 {original_email}
 {date_context}
+
+{open_context}
+
 Rules:
 1. Maximum 80 words
 2. Be polite and not pushy
@@ -265,8 +275,8 @@ Rules:
 4. Don't repeat the same content
 5. If follow-up #1: gentle reminder
 6. Output the email body in valid HTML utilizing <p> and <br> tags where necessary. Include an HTML sign-off matching the original sender. Do NOT use markdown.
-7. CRITICAL: You have ALL the information you need above (company name, role, sender name, date). You MUST use the actual values provided. NEVER use square bracket placeholders like [Date], [Company], [Role], [Name], [Date of original email], or ANY text wrapped in square brackets []. If you truly cannot find a value, omit that reference entirely rather than using a placeholder.
-8. When referring to when the original email was sent, use phrases like "my recent email", "my email from last week", or "a few days ago" instead of trying to insert a specific date.
+7. CRITICAL: You have ALL the information you need above. You MUST use the actual values provided. NEVER use square bracket placeholders like [Date], [Company], or ANY text wrapped in square brackets []. If you truly cannot find a value, omit that reference entirely.
+8. When referring to when the original email was sent, use phrases like "my recent email" or "a few days ago" instead of trying to insert a specific date. Do not explicitly say "I saw you opened my email".
 
 Return ONLY the HTML email body text, no JSON, no formatting wrappers.
 """

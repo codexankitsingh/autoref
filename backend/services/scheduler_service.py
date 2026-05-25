@@ -19,6 +19,8 @@ from models.follow_up_job import FollowUpJob
 from services.ai_service import ai_service
 from services.email_service import email_service
 from services.scraper_service import scraper_service
+from services.scoring_service import scoring_service
+from services.report_service import report_service
 
 
 class SchedulerService:
@@ -67,6 +69,13 @@ class SchedulerService:
                 id="daily_scrape",
                 replace_existing=True,
             )
+            # Weekly Intelligence Report on Monday at 8:00 AM IST (2:30 AM UTC)
+            self.scheduler.add_job(
+                report_service.generate_weekly_report,
+                CronTrigger(day_of_week='mon', hour=2, minute=30),
+                id="weekly_report",
+                replace_existing=True,
+            )
             self.scheduler.start()
             print("📅 Scheduler started — follow-ups (1m), keep-alive (14m). Reply checking: MANUAL.")
 
@@ -86,7 +95,16 @@ class SchedulerService:
 
             # Create follow-up job entries
             for i in range(1, max_follow_ups + 1):
-                scheduled_time = datetime.utcnow() + timedelta(days=interval_days * i)
+                # Smart Scheduling: Align to 10:00 AM IST (4:30 AM UTC) on a weekday
+                base_time = datetime.utcnow() + timedelta(days=interval_days * i)
+                # Shift to 4:30 AM UTC
+                scheduled_time = base_time.replace(hour=4, minute=30, second=0, microsecond=0)
+                
+                # If weekend (5=Saturday, 6=Sunday), shift to Monday
+                if scheduled_time.weekday() == 5:
+                    scheduled_time += timedelta(days=2)
+                elif scheduled_time.weekday() == 6:
+                    scheduled_time += timedelta(days=1)
 
                 # Check if already exists
                 existing = db.query(FollowUpJob).filter(
@@ -195,6 +213,7 @@ class SchedulerService:
             original_email=original_msg.content,
             follow_up_number=job.follow_up_number,
             original_sent_date=original_date_str,
+            open_count=original_msg.open_count or 0,
         )
 
         # Send the follow-up
