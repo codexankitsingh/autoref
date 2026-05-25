@@ -255,6 +255,81 @@ class EmailService:
             print(f"Error checking replies: {e}")
             return []
 
+    def process_incoming_webhook(self, account_id: int, history_id: int):
+        """
+        Background worker that fetches changed messages based on Pub/Sub historyId,
+        checks if they belong to active AutoRef threads, uses Gemini to categorize them,
+        and halts follow-ups if appropriate.
+        """
+        from database import SessionLocal
+        from models.email_thread import EmailThread
+        from services.scheduler_service import scheduler_service
+        from services.ai_service import ai_service
+        
+        db = SessionLocal()
+        try:
+            account = db.query(MailAccount).filter(MailAccount.id == account_id).first()
+            if not account or not account.oauth_token:
+                return
+
+            service = self._get_gmail_service(account)
+            
+            # Fetch history since the given historyId
+            # Note: For robust implementations, we should store the last known historyId 
+            # and request everything since then. For simplicity here, we use the provided historyId.
+            history_response = service.users().history().list(
+                userId="me", 
+                startHistoryId=max(1, int(history_id) - 1000) # Give a small buffer
+            ).execute()
+
+            changes = history_response.get("history", [])
+            for record in changes:
+                # Look for newly added messages
+                if "messagesAdded" in record:
+                    for msg_added in record["messagesAdded"]:
+                        msg_info = msg_added.get("message", {})
+                        gmail_msg_id = msg_info.get("id")
+                        gmail_thread_id = msg_info.get("threadId")
+
+                        # Does this thread exist in our DB?
+                        thread = db.query(EmailThread).filter(EmailThread.gmail_thread_id == gmail_thread_id).first()
+                        if not thread:
+                            continue # Not an AutoRef thread
+
+                        # We found a new message in an AutoRef thread. 
+                        # Check if it's actually a reply from the other person.
+                        new_replies = self.check_replies(db, gmail_thread_id, account_id)
+                        
+                        if new_replies:
+                            # Take the latest reply content
+                            latest_reply = new_replies[-1]
+                            reply_text = latest_reply["content"]
+                            
+                            print(f"🔔 Received reply for thread {thread.id}. Categorizing intent...")
+                            
+                            # AI Categorization
+                            intent = ai_service.categorize_reply(reply_text)
+                            print(f"🤖 Categorized as: {intent}")
+                            
+                            thread.replied = True
+                            if intent == "interview_requested":
+                                thread.status = "interview_scheduled"
+                            elif intent == "referral_provided":
+                                thread.status = "replied" # Custom state if needed, sticking to core states
+                            elif intent == "rejected":
+                                thread.status = "rejected"
+                            else:
+                                thread.status = "replied"
+                                
+                            db.commit()
+
+                            # Auto-Ghost: Cancel any pending automated follow-ups instantly
+                            scheduler_service.cancel_follow_ups(thread.id)
+                            
+        except Exception as e:
+            print(f"Webhook processing error: {e}")
+        finally:
+            db.close()
 
 # Singleton
 email_service = EmailService()

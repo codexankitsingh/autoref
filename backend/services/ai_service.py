@@ -304,6 +304,39 @@ Return ONLY the HTML email body text, no JSON, no formatting wrappers.
             else:
                 return "Hi, I understand you're busy, so this will be my last follow-up. If you're able to provide a referral, I'd be truly grateful. Either way, thank you for your time!"
 
+    def categorize_reply(self, reply_text: str, model_name: str = "gemini-2.5-flash-lite") -> str:
+        """
+        Categorizes an incoming reply from a recruiter into actionable states.
+        Returns one of: 'interview_requested', 'referral_provided', 'rejected', 'out_of_office', 'other'
+        """
+        prompt = f"""You are an AI assistant helping categorize email replies from recruiters.
+
+Read the following email reply and categorize the intent into EXACTLY ONE of the following tags:
+- interview_requested : (They want to schedule a call, chat, interview, or sent a calendly link)
+- referral_provided : (They provided a referral, sent a unique application link, or passed the resume to a hiring manager)
+- rejected : (They are not moving forward, no open roles, or polite decline)
+- out_of_office : (Automated OOO, vacation, or no longer at company)
+- other : (Any other response, e.g. "I'll look into it", "Apply online normally", or ambiguous)
+
+Reply text:
+"{reply_text}"
+
+Return ONLY the exact tag string in lowercase. No other text.
+"""
+        try:
+            result = self._call_gemini(prompt, model_name=model_name).strip().lower()
+            valid_tags = ["interview_requested", "referral_provided", "rejected", "out_of_office", "other"]
+            if result in valid_tags:
+                return result
+            # fallback fuzzy matching
+            for tag in valid_tags:
+                if tag in result:
+                    return tag
+            return "other"
+        except Exception as e:
+            print(f"Reply categorization error: {e}")
+            return "other"
+
 
 # Singleton instance
 ai_service = AIService()
