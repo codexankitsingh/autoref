@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import AuthGuard from '@/components/AuthGuard';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
+import { api, AdminUser } from '@/lib/api';
 
 interface PendingUser {
   id: number;
@@ -16,31 +16,38 @@ interface PendingUser {
 
 export default function AdminPage() {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'pending' | 'all'>('pending');
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ type: string; message: string } | null>(null);
 
-  const loadPending = useCallback(async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.getPendingUsers();
-      setPendingUsers(data);
+      if (activeTab === 'pending') {
+        const data = await api.getPendingUsers();
+        setPendingUsers(data);
+      } else {
+        const data = await api.getAllUsers();
+        setAllUsers(data);
+      }
     } catch {
-      // Not admin or API error
+      showToast('error', 'Failed to fetch users');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
-    loadPending();
-  }, [loadPending]);
+    loadData();
+  }, [loadData]);
 
   async function handleApprove(userId: number, approved: boolean) {
     try {
       await api.approveUser({ user_id: userId, approved });
-      showToast('success', approved ? 'User approved!' : 'User rejected');
-      loadPending();
+      showToast('success', approved ? 'User approved!' : 'Access revoked');
+      loadData();
     } catch {
       showToast('error', 'Failed to update user');
     }
@@ -80,11 +87,29 @@ export default function AdminPage() {
           </div>
 
           <div className="card animate-in" style={{ animationDelay: '0.1s' }}>
-            <div className="card-header">
-              <h2 className="card-title">Pending Approvals</h2>
-              <button className="btn btn-secondary btn-sm" onClick={loadPending}>
-                🔄 Refresh
-              </button>
+            <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <h2 className="card-title">User Management</h2>
+                <button className="btn btn-secondary btn-sm" onClick={loadData}>
+                  🔄 Refresh
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', width: '100%', paddingBottom: '8px' }}>
+                <button 
+                  className={`btn btn-sm ${activeTab === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveTab('pending')}
+                  style={{ background: activeTab === 'pending' ? 'var(--accent-primary)' : 'transparent', border: 'none' }}
+                >
+                  Pending Approvals
+                </button>
+                <button 
+                  className={`btn btn-sm ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveTab('all')}
+                  style={{ background: activeTab === 'all' ? 'var(--accent-primary)' : 'transparent', border: 'none' }}
+                >
+                  All Users
+                </button>
+              </div>
             </div>
 
             {loading ? (
@@ -92,44 +117,78 @@ export default function AdminPage() {
                 <div className="spinner spinner-lg" />
                 <div className="empty-state-title mt-16">Loading...</div>
               </div>
-            ) : pendingUsers.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">✅</div>
-                <div className="empty-state-title">All caught up!</div>
-                <div className="empty-state-text">
-                  No pending user approvals at this time.
+            ) : activeTab === 'pending' ? (
+              // PENDING VIEW
+              pendingUsers.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">✅</div>
+                  <div className="empty-state-title">All caught up!</div>
+                  <div className="empty-state-text">No pending user approvals at this time.</div>
                 </div>
-              </div>
+              ) : (
+                <div className="table-container">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingUsers.map((u) => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="flex items-center gap-12">
+                              {u.avatar_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={u.avatar_url} alt={u.name} style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                              ) : (
+                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--accent-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--accent-primary)' }}>
+                                  {u.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <strong>{u.name}</strong>
+                            </div>
+                          </td>
+                          <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
+                          <td style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>{new Date(u.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <div className="flex items-center gap-8">
+                              <button className="btn btn-sm" style={{ background: 'var(--accent-success-bg)', color: 'var(--accent-success)', border: '1px solid rgba(16, 185, 129, 0.2)' }} onClick={() => handleApprove(u.id, true)}>✅ Approve</button>
+                              <button className="btn btn-danger btn-sm" onClick={() => handleApprove(u.id, false)}>❌ Reject</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
             ) : (
+              // ALL USERS VIEW
               <div className="table-container">
                 <table className="table">
                   <thead>
                     <tr>
                       <th>User</th>
                       <th>Email</th>
+                      <th>Status</th>
                       <th>Registered</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingUsers.map((u) => (
+                    {allUsers.map((u) => (
                       <tr key={u.id}>
                         <td>
                           <div className="flex items-center gap-12">
                             {u.avatar_url ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={u.avatar_url}
-                                alt={u.name}
-                                style={{ width: 32, height: 32, borderRadius: '50%' }}
-                              />
+                              <img src={u.avatar_url} alt={u.name} style={{ width: 32, height: 32, borderRadius: '50%' }} />
                             ) : (
-                              <div style={{
-                                width: 32, height: 32, borderRadius: '50%',
-                                background: 'var(--accent-primary-glow)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '14px', fontWeight: 600, color: 'var(--accent-primary)',
-                              }}>
+                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--accent-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--accent-primary)' }}>
                                 {u.name.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -137,28 +196,23 @@ export default function AdminPage() {
                           </div>
                         </td>
                         <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
-                        <td style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
-                          {new Date(u.created_at).toLocaleDateString()}
+                        <td>
+                          {u.is_approved && u.is_active ? (
+                            <span className="badge badge-replied">Approved</span>
+                          ) : !u.is_approved && !u.is_active ? (
+                            <span className="badge badge-rejected">Revoked / Rejected</span>
+                          ) : (
+                            <span className="badge badge-draft">Pending</span>
+                          )}
                         </td>
+                        <td style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>{new Date(u.created_at).toLocaleDateString()}</td>
                         <td>
                           <div className="flex items-center gap-8">
-                            <button
-                              className="btn btn-sm"
-                              style={{
-                                background: 'var(--accent-success-bg)',
-                                color: 'var(--accent-success)',
-                                border: '1px solid rgba(16, 185, 129, 0.2)',
-                              }}
-                              onClick={() => handleApprove(u.id, true)}
-                            >
-                              ✅ Approve
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleApprove(u.id, false)}
-                            >
-                              ❌ Reject
-                            </button>
+                            {(!u.is_approved || !u.is_active) ? (
+                              <button className="btn btn-sm" style={{ background: 'var(--accent-success-bg)', color: 'var(--accent-success)', border: '1px solid rgba(16, 185, 129, 0.2)' }} onClick={() => handleApprove(u.id, true)}>✅ Restore Access</button>
+                            ) : (
+                              <button className="btn btn-danger btn-sm" onClick={() => handleApprove(u.id, false)}>⛔ Revoke Access</button>
+                            )}
                           </div>
                         </td>
                       </tr>

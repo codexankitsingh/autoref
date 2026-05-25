@@ -203,6 +203,25 @@ def get_pending_users(
         for u in pending
     ]
 
+@router.get("/all-users")
+def get_all_users(
+    admin: User = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Admin: list all registered users."""
+    users = db.query(User).all()
+    return [
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "avatar_url": u.avatar_url,
+            "is_approved": bool(u.is_approved),
+            "is_active": bool(u.is_active),
+            "created_at": str(u.created_at),
+        }
+        for u in users
+    ]
 
 @router.post("/approve-user")
 def approve_user(
@@ -216,6 +235,7 @@ def approve_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_approved = 1 if request.approved else 0
+    user.is_active = 1 if request.approved else 0
     db.commit()
     action = "approved" if request.approved else "rejected"
     return {"message": f"User {user.email} {action}", "user_id": user.id}

@@ -75,6 +75,16 @@ export interface TokenResponse {
   user: AuthUser;
 }
 
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  avatar_url: string | null;
+  is_approved: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
 // ── API Methods ──
 
 export const api = {
@@ -93,6 +103,9 @@ export const api = {
 
   getPendingUsers: () =>
     apiRequest<Array<{ id: number; name: string; email: string; avatar_url: string | null; created_at: string }>>('/api/auth/pending-users'),
+
+  getAllUsers: () =>
+    apiRequest<AdminUser[]>('/api/auth/all-users'),
 
   approveUser: (data: { user_id: number; approved: boolean }) =>
     apiRequest('/api/auth/approve-user', { method: 'POST', body: data }),
