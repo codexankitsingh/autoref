@@ -10,7 +10,7 @@
   <br>
   [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white)](https://deepmind.google/technologies/gemini/)
   [![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/)
-  [![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
   [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=python&logoColor=white)](https://www.sqlalchemy.org/)
 </div>
 
@@ -49,7 +49,7 @@ graph TD
         PubSub("📡 Google Cloud Pub/Sub<br/>(Push Notifications)")
     end
     
-    DB[("SQLite<br/>Database")]
+    DB[("🐘 PostgreSQL<br/>Database")]
 
     %% Frontend interactions
     Client <-->|Google ID Token| GoogleAuth
@@ -109,9 +109,19 @@ graph TD
 | :--- | :--- |
 | **Frontend** | Next.js 16 (App Router), React, Tailwind CSS, Context API |
 | **Backend** | FastAPI, Python 3, Pydantic, Passlib, python-jose |
-| **Database** | SQLite, SQLAlchemy (ORM), Alembic |
+| **Database** | PostgreSQL, SQLAlchemy (ORM), Alembic |
 | **Background Jobs** | APScheduler |
 | **Integrations** | Google Gemini API, Gmail API, Google Cloud Pub/Sub |
+| **Deployment** | Render (Backend/PostgreSQL), Vercel/Netlify (Frontend) |
+
+---
+
+## 🌍 Production Deployment
+
+This project is built for seamless cloud deployment. The architecture natively supports:
+- **Render** for hosting the FastAPI backend and managed **PostgreSQL** database instances.
+- **Vercel / Netlify** for hosting the statically generated Next.js frontend.
+- Continuous deployment via GitHub branch syncing.
 
 ---
 
