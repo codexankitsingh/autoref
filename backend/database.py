@@ -66,15 +66,26 @@ def init_db():
         alembic_ini = os.path.join(os.path.dirname(__file__), "alembic.ini")
         if os.path.exists(alembic_ini):
             alembic_cfg = Config(alembic_ini)
-            # Re-read tables after create_all
-            inspector = inspect(engine)
-            if "alembic_version" not in inspector.get_table_names():
-                # First time with Alembic: stamp current state as baseline
-                command.stamp(alembic_cfg, "head")
-                print("✅ Database initialized + Alembic baseline stamped")
-            else:
-                command.upgrade(alembic_cfg, "head")
-                print("✅ Alembic migrations applied")
+            
+            # Since our migration is idempotent, we always run upgrade.
+            # This handles both fresh DBs and old DBs properly.
+            command.upgrade(alembic_cfg, "head")
+            print("✅ Alembic migrations applied")
+            
+            # ── Fallback Patch for existing bugged deployments ──
+            # If the DB was incorrectly stamped as head without adding columns, 
+            # we manually patch it here.
+            with engine.connect() as conn:
+                from sqlalchemy import text
+                inspector = inspect(engine)
+                msg_columns = [col["name"] for col in inspector.get_columns("messages")]
+                if "tracking_id" not in msg_columns:
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN tracking_id VARCHAR(64)"))
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN open_count INTEGER DEFAULT 0"))
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN opened_at TIMESTAMP"))
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN last_opened_at TIMESTAMP"))
+                    conn.commit()
+                    print("🔧 Manually patched missing tracking columns in messages table.")
         else:
             print("✅ Database initialized (no alembic.ini found)")
     except Exception as e:
