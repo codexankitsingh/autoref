@@ -22,7 +22,7 @@ AutoRef is an enterprise-grade, multi-tenant SaaS platform engineered to streaml
 
 Designed with a modern **event-driven architecture**, AutoRef integrates seamlessly with the **Gmail API (OAuth 2.0)** and **Google Cloud Pub/Sub** for real-time inbox monitoring. It employs an intelligent **background scheduler (`APScheduler`)** for automated, multi-stage follow-up sequences and precision click tracking.
 
-This project demonstrates strong proficiency in **Systems Architecture, Event-Driven Design, Secure Authentication, Third-Party Integrations, and Asynchronous Processing**.
+This project demonstrates strong proficiency in **Systems Architecture, Event-Driven Design, Secure Authentication, Third-Party Integrations, and Concurrent Background Processing**.
 
 ---
 
@@ -96,8 +96,9 @@ graph TD
 * **Semantic Parsing:** Dynamically extracts Company, Role, and Skills from raw Job Description URLs/text.
 * **Role-Specific Prompt Engineering:** Utilizes structured `role_configs` (Backend/SDE, Fintech, Data Engineering) to instruct the LLM on which specific achievements to highlight from the user's profile, generating high-converting B2B copy.
 
-### ⏱️ Asynchronous Workflow & Precision Tracking
-* **Intelligent Follow-ups:** `APScheduler` orchestrates a stateful, multi-stage follow-up pipeline, naturally throttled to respect API rate limits.
+### ⏱️ Concurrent Workflows & Background Processing
+* **Non-Blocking Webhook Ingestion:** Utilizes FastAPI's `BackgroundTasks` to instantly return `200 OK` responses to Google Pub/Sub, offloading heavy LLM parsing and database commits to concurrent background threads.
+* **Stateful Pipeline Orchestration:** `APScheduler` manages concurrent, multi-stage follow-up pipelines in the background, naturally throttled to respect external API rate limits.
 * **Click-Tracking Analytics:** Replaces legacy pixel tracking with robust URL-wrapping and redirect routing, providing highly accurate engagement metrics without triggering enterprise spam filters.
 * **Idempotent Processing:** Terminal states (`sent`, `failed`, `cancelled`) ensure that transient network failures never result in duplicate emails.
 
