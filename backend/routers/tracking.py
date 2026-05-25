@@ -1,5 +1,6 @@
 import base64
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request, Response, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
 
@@ -29,3 +30,18 @@ def track_open(tracking_id: str, request: Request, db: Session = Depends(get_db)
         db.commit()
     
     return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+@router.get("/click/{tracking_id}")
+def track_click(tracking_id: str, url: str, request: Request, db: Session = Depends(get_db)):
+    """Tracking link click endpoint. Redirects to the actual URL."""
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing url parameter")
+
+    msg = db.query(Message).filter(Message.tracking_id == tracking_id).first()
+    
+    if msg:
+        msg.click_count = (msg.click_count or 0) + 1
+        msg.last_clicked_at = datetime.utcnow()
+        db.commit()
+    
+    return RedirectResponse(url=url, status_code=302)

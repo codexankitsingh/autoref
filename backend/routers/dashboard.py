@@ -55,6 +55,8 @@ def get_dashboard(
     for t in threads:
         total_opens = sum(m.open_count for m in t.messages if m.open_count)
         last_opened = max((m.last_opened_at for m in t.messages if m.last_opened_at), default=None)
+        total_clicks = sum(m.click_count for m in t.messages if m.click_count)
+        last_clicked = max((m.last_clicked_at for m in t.messages if m.last_clicked_at), default=None)
 
         records.append(OutreachRecord(
             id=t.id,
@@ -71,6 +73,8 @@ def get_dashboard(
             created_at=t.created_at,
             open_count=total_opens,
             last_opened_at=last_opened,
+            click_count=total_clicks,
+            last_clicked_at=last_clicked,
         ))
 
     return DashboardResponse(records=records, total=len(records))

@@ -84,8 +84,11 @@ def init_db():
                     conn.execute(text("ALTER TABLE messages ADD COLUMN open_count INTEGER DEFAULT 0"))
                     conn.execute(text("ALTER TABLE messages ADD COLUMN opened_at TIMESTAMP"))
                     conn.execute(text("ALTER TABLE messages ADD COLUMN last_opened_at TIMESTAMP"))
-                    conn.commit()
-                    print("🔧 Manually patched missing tracking columns in messages table.")
+                if "click_count" not in msg_columns:
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN click_count INTEGER DEFAULT 0"))
+                    conn.execute(text("ALTER TABLE messages ADD COLUMN last_clicked_at TIMESTAMP"))
+                conn.commit()
+                print("🔧 Manually patched missing tracking columns in messages table.")
         else:
             print("✅ Database initialized (no alembic.ini found)")
     except Exception as e:

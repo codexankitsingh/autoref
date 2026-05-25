@@ -5,6 +5,8 @@ Handles OAuth2 flow, email sending, and reply checking.
 import os
 import base64
 import json
+import re
+import urllib.parse
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -166,10 +168,21 @@ class EmailService:
         message["from"] = account.email
         message["subject"] = subject
         
-        # Tracking pixel injection REMOVED: Email clients (Apple Mail, Gmail) 
-        # auto-proxy images, causing false positive opens, and strict enterprise
-        # spam filters aggressively flag 1x1 transparent pixels as spam.
-        # Deliverability is prioritized over open tracking.
+        # Link Click Tracking (Phase 2 Upgrade)
+        # Replaces all <a href="URL"> with our tracking redirect endpoint
+        if tracking_id:
+            def replace_href(match):
+                original_url = match.group(1)
+                # Ignore mailto links or anchor links
+                if original_url.startswith("mailto:") or original_url.startswith("#"):
+                    return match.group(0)
+                encoded_url = urllib.parse.quote(original_url, safe='')
+                tracking_url = f"https://autoref-zz6o.onrender.com/api/track/click/{tracking_id}?url={encoded_url}"
+                return f'href="{tracking_url}"'
+            
+            # Match href="URL" or href='URL'
+            body = re.sub(r'href=["\'](.*?)["\']', replace_href, body)
+            
         msg_body = MIMEText(body, "html")
         message.attach(msg_body)
 

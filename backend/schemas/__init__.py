@@ -114,6 +114,8 @@ class OutreachRecord(BaseModel):
     created_at: datetime
     open_count: int = 0
     last_opened_at: Optional[datetime] = None
+    click_count: int = 0
+    last_clicked_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

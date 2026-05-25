@@ -150,6 +150,8 @@ export const api = {
         created_at: string;
         open_count: number;
         last_opened_at: string | null;
+        click_count: number;
+        last_clicked_at: string | null;
       }>;
       total: number;
     }>(`/api/dashboard${qs ? `?${qs}` : ''}`);

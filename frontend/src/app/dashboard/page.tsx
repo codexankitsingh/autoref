@@ -20,6 +20,8 @@ interface OutreachRecord {
   created_at: string;
   open_count: number;
   last_opened_at: string | null;
+  click_count: number;
+  last_clicked_at: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -247,7 +249,7 @@ export default function DashboardPage() {
                     <th>Recipient</th>
                     <th>Status</th>
                     <th>Follow-ups</th>
-                    <th>Opens</th>
+                    <th>Clicks</th>
                     <th>Last Activity</th>
                     <th>Reply</th>
                     <th>Interview</th>
@@ -273,7 +275,7 @@ export default function DashboardPage() {
                       <td>{record.follow_up_count} / 3</td>
                       <td>
                         <span className="badge badge-draft">
-                          👁️ {record.open_count}
+                          🖱️ {record.click_count}
                         </span>
                       </td>
                       <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -329,7 +331,7 @@ export default function DashboardPage() {
                           {STATUS_LABELS[record.status] || record.status}
                         </span>
                         <div style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)' }}>
-                          <span>👁️ {record.open_count}</span>
+                          <span>🖱️ {record.click_count} clicks</span>
                           <span>{record.follow_up_count} Follow-ups</span>
                         </div>
                       </div>

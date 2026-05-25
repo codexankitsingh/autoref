@@ -16,11 +16,13 @@ class Message(Base):
     sent_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
-    # Email open tracking (Phase 2)
-    tracking_id = Column(String(64), unique=True, nullable=True)  # UUID for pixel tracking
+    # Email engagement tracking
+    tracking_id = Column(String(64), unique=True, nullable=True)  # UUID for tracking
     open_count = Column(Integer, default=0)
     opened_at = Column(DateTime, nullable=True)  # First open
     last_opened_at = Column(DateTime, nullable=True)  # Most recent open
+    click_count = Column(Integer, default=0)
+    last_clicked_at = Column(DateTime, nullable=True)
 
     # Relationships
     thread = relationship("EmailThread", back_populates="messages")
