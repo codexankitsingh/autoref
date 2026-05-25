@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🚀 AutoRef</h1>
-  <p><b>An AI-Powered, Multi-Tenant Job Outreach Automation Platform</b></p>
+  <p><b>An AI-Powered, Event-Driven Job Outreach Automation SaaS</b></p>
   
   [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
   [![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
@@ -12,11 +12,11 @@
 
 ## 📖 Overview
 
-AutoRef is an enterprise-grade, multi-tenant SaaS platform engineered to streamline and automate B2B/Job application outreach. It leverages **Google Gemini LLMs** to dynamically parse job descriptions and synthesize hyper-personalized referral emails based on the user's resume.
+AutoRef is an enterprise-grade, multi-tenant SaaS platform engineered to streamline and automate B2B/Job application outreach. It leverages **Google Gemini LLMs** to dynamically parse job descriptions and synthesize hyper-personalized referral emails based on the user's uploaded profile.
 
-The platform integrates directly with the **Gmail API (OAuth 2.0)** for email dispatch and employs an intelligent **event-driven background scheduler** (`APScheduler`) for automated, multi-stage follow-up sequences and active reply detection.
+Designed with a modern **event-driven architecture**, AutoRef integrates seamlessly with the **Gmail API (OAuth 2.0)** and **Google Cloud Pub/Sub** for real-time inbox monitoring. It employs an intelligent **background scheduler (`APScheduler`)** for automated, multi-stage follow-up sequences and precision click tracking.
 
-This project demonstrates strong proficiency in **Systems Architecture, Secure Authentication, Third-Party Integrations, and Asynchronous Processing**.
+This project demonstrates strong proficiency in **Systems Architecture, Event-Driven Design, Secure Authentication, Third-Party Integrations, and Asynchronous Processing**.
 
 ---
 
@@ -29,8 +29,9 @@ graph TD
     Client("💻 Next.js Client<br/>(React / Tailwind)")
     
     subgraph FastAPI Backend
-        Auth("🔐 Auth Router<br/>(JWT / Google ID)")
+        Auth("🔐 Auth Router<br/>(JWT / RBAC)")
         API("⚡ REST API<br/>(Protected Endpoints)")
+        Webhooks("🎣 Webhooks<br/>(Pub/Sub Events)")
         Scheduler("⏱️ APScheduler<br/>(Background Jobs)")
         ORM("🗄️ SQLAlchemy<br/>(Data Access)")
     end
@@ -39,48 +40,60 @@ graph TD
         Gemini("🧠 Google Gemini<br/>(LLM Engine)")
         Gmail("📧 Gmail API<br/>(OAuth 2.0)")
         GoogleAuth("👤 Google Identity<br/>(Sign-In)")
+        PubSub("📡 Google Cloud Pub/Sub<br/>(Push Notifications)")
     end
     
     DB[("SQLite<br/>Database")]
 
+    %% Frontend interactions
     Client <-->|Google ID Token| GoogleAuth
     Client <-->|Login / Register| Auth
     Client <-->|Bearer JWT| API
     
+    %% Backend core
     Auth <--> ORM
     API <--> ORM
+    Webhooks <--> ORM
     Scheduler <--> ORM
     ORM <--> DB
     
+    %% Third-party interactions
     API <-->|Prompt / Parse| Gemini
     API <-->|Send Drafts| Gmail
     
+    %% Event-Driven Flow
+    Gmail -->|Inbox Changes| PubSub
+    PubSub -->|Push Event via HTTP POST| Webhooks
+    Webhooks <-->|Categorize Intent| Gemini
+    Webhooks -.->|Auto-Cancel Follow-ups| Scheduler
+    
+    %% Scheduled jobs
     Scheduler -.->|Auto-Send Follow-ups| Gmail
-    Scheduler -.->|Poll Inbox Replies| Gmail
 ```
 
 ---
 
 ## ✨ Core Features & Technical Highlights
 
+### 📡 Event-Driven AI Reply Parsing
+* **Real-Time Webhooks:** Shifted from cron-based polling to a true event-driven model using **Google Cloud Pub/Sub**, allowing the server to process recruiter replies the millisecond they arrive.
+* **AI Intent Classification:** Inbound replies are intercepted and routed through Gemini to autonomously categorize the recruiter's intent (`interview_requested`, `referral_provided`, `rejected`).
+* **Auto-Ghosting Prevention:** Based on the AI's classification, the system instantly cancels pending automated follow-ups for that specific thread, guaranteeing professional engagement logic.
+
 ### 🛡️ Enterprise-Grade Auth & Multi-Tenancy
 * **Robust Security:** Implements JWT-based authentication with `bcrypt` password hashing and Google Sign-In (OAuth ID Tokens).
-* **3-Tier Dependency Injection:** FastAPI routes are protected via a strictly typed dependency chain (`Authenticated → Approved → Admin`).
-* **Admin Gatekeeping:** First-user bootstrap strategy auto-approves the admin; subsequent registrations enter a pending state until manually approved via the Admin Panel, strictly preventing platform abuse.
+* **Role-Based Access Control (RBAC):** FastAPI routes are protected via a strictly typed dependency injection chain (`Authenticated → Approved → Admin`).
+* **Modular User Management:** Comprehensive admin panel with strict toggles allowing admins to approve, reject, or completely revoke tenant access. 
 * **Row-Level Isolation:** 100% data isolation across tenants using strict `user_id` foreign key scoping on all ORM queries.
 
-### 🧠 Context-Aware AI Generation (Gemini)
+### 🧠 Context-Aware AI Generation
 * **Semantic Parsing:** Dynamically extracts Company, Role, and Skills from raw Job Description URLs/text.
 * **Role-Specific Prompt Engineering:** Utilizes structured `role_configs` (Backend/SDE, Fintech, Data Engineering) to instruct the LLM on which specific achievements to highlight from the user's profile, generating high-converting B2B copy.
 
-### ⏱️ Asynchronous Workflow Engine
-* **Intelligent Follow-ups:** `APScheduler` orchestrates a stateful, multi-stage follow-up pipeline.
-* **Rate-Limit Respecting:** Jobs are naturally throttled (1 per minute) to respect Gmail API limits and prevent spam flagging.
-* **Idempotent Processing:** Terminal states (`sent`, `failed`, `cancelled`) ensure that transient network failures do not result in duplicate emails to recruiters.
-
-### 🔄 Automated Inbox Monitoring
-* **Event-Driven Polling:** Periodically monitors the connected Gmail inbox.
-* **Reply Detection:** Autonomously detects replies from external domains, updates the application thread state, and immediately halts pending follow-up jobs.
+### ⏱️ Asynchronous Workflow & Precision Tracking
+* **Intelligent Follow-ups:** `APScheduler` orchestrates a stateful, multi-stage follow-up pipeline, naturally throttled to respect API rate limits.
+* **Click-Tracking Analytics:** Replaces legacy pixel tracking with robust URL-wrapping and redirect routing, providing highly accurate engagement metrics without triggering enterprise spam filters.
+* **Idempotent Processing:** Terminal states (`sent`, `failed`, `cancelled`) ensure that transient network failures never result in duplicate emails.
 
 ---
 
@@ -88,11 +101,11 @@ graph TD
 
 | Domain | Technologies |
 | :--- | :--- |
-| **Frontend** | Next.js 16, React, Tailwind CSS, Context API |
+| **Frontend** | Next.js 16 (App Router), React, Tailwind CSS, Context API |
 | **Backend** | FastAPI, Python 3, Pydantic, Passlib, python-jose |
 | **Database** | SQLite, SQLAlchemy (ORM), Alembic |
 | **Background Jobs** | APScheduler |
-| **Integrations** | Google Gemini API, Gmail API, Google Sheets API |
+| **Integrations** | Google Gemini API, Gmail API, Google Cloud Pub/Sub |
 
 ---
 
@@ -103,7 +116,7 @@ To run AutoRef locally, spin up both the FastAPI backend and the Next.js fronten
 ### Prerequisites
 * Python 3.9+
 * Node.js 18+
-* Google Cloud Console Account (Gmail API enabled, OAuth 2.0 Credentials configured)
+* Google Cloud Console Account (Gmail API enabled, OAuth 2.0 Credentials configured, Pub/Sub topic created)
 * Google Gemini API Key
 
 ### 1. Backend Initialization (FastAPI)
@@ -141,22 +154,6 @@ Navigate to `http://localhost:3000` to access the application.
 
 ---
 
-## 📸 Application Previews
-
-| Dashboard Analytics | Outreach Generator | Admin Access Control |
-| :---: | :---: | :---: |
-| ![Outreach Tracking Dashboard](assets/dashboard_page.png) | ![New Outreach Generator](assets/home_page.png) | *(Admin panel for user approval routing)* |
-
----
-
-## 📄 Author Resumes
-
-| Target Engineering Domain | Resume Link |
-| :--- | :--- |
-| **SDE / Backend Engineering** | [View PDF (Google Drive)](https://drive.google.com/file/d/1-wUNnd1ZFThJ5NzPP7NJtFYHnUGZsBgC/view?usp=sharing) |
-
-
----
 <div align="center">
   <i>Architected for scale, built for speed.</i>
 </div>
