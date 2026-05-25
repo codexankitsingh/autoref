@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
+import uuid
 
 from database import get_db
 from schemas import SendEmailRequest, SendEmailResponse
@@ -50,13 +51,17 @@ def send_email(
             db.add(recipient)
             db.flush()
 
-        # 3. Send via Gmail API
+        # 3. Generate Tracking ID (Phase 2)
+        tracking_id = str(uuid.uuid4())
+
+        # 4. Send via Gmail API
         send_result = email_service.send_email(
             db=db,
             sender_account_id=request.sender_account_id,
             recipient_email=request.recipient_email,
             subject=request.email_subject,
             body=request.email_body,
+            tracking_id=tracking_id,
         )
 
         # 4. Create EmailThread (scoped to user)
@@ -74,7 +79,7 @@ def send_email(
         db.add(thread)
         db.flush()
 
-        # 5. Create Message record
+        # 6. Create Message record
         message = Message(
             thread_id=thread.id,
             gmail_message_id=send_result.get("gmail_message_id"),
@@ -82,6 +87,7 @@ def send_email(
             subject=request.email_subject,
             content=request.email_body,
             sent_at=datetime.utcnow(),
+            tracking_id=tracking_id,
         )
         db.add(message)
         db.commit()

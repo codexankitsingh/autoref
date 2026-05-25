@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
 from database import init_db
-from routers import auth, generate, send, followup, dashboard
+from routers import auth, generate, send, followup, dashboard, jobs, tracking
 from routers import settings as settings_router
 from services.scheduler_service import scheduler_service
 
@@ -51,6 +51,8 @@ app.include_router(send.router)
 app.include_router(followup.router)
 app.include_router(dashboard.router)
 app.include_router(settings_router.router)
+app.include_router(jobs.router)
+app.include_router(tracking.router)
 
 
 @app.get("/health")

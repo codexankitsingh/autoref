@@ -1,0 +1,15 @@
+{
+    "queries": [
+        {
+            "search_term": "Software Engineer",
+            "location": "India"
+        },
+        {
+            "search_term": "Backend Engineer",
+            "location": "Bangalore"
+        }
+    ],
+    "results_wanted": 20,
+    "hours_old": 24,
+    "min_score_threshold": 50
+}

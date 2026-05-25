@@ -7,8 +7,10 @@ from models.email_thread import EmailThread
 from models.message import Message
 from models.follow_up_job import FollowUpJob
 from models.reply import Reply
+from models.scraped_job import ScrapedJob
 
 __all__ = [
     "User", "MailAccount", "JobApplication", "Recipient",
     "EmailThread", "Message", "FollowUpJob", "Reply",
+    "ScrapedJob",
 ]

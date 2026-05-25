@@ -5,8 +5,10 @@ Checks for pending follow-ups, generates AI-powered follow-up emails, and sends 
 from datetime import datetime, timedelta, timezone
 import os
 import requests
+import uuid
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 
 from config import get_settings
@@ -16,6 +18,7 @@ from models.message import Message
 from models.follow_up_job import FollowUpJob
 from services.ai_service import ai_service
 from services.email_service import email_service
+from services.scraper_service import scraper_service
 
 
 class SchedulerService:
@@ -55,6 +58,13 @@ class SchedulerService:
                 self._keep_alive_ping,
                 IntervalTrigger(minutes=14),
                 id="keep_alive",
+                replace_existing=True,
+            )
+            # Daily job scrape at 8:00 AM IST (2:30 AM UTC)
+            self.scheduler.add_job(
+                self._daily_scrape_and_score,
+                CronTrigger(hour=2, minute=30),
+                id="daily_scrape",
                 replace_existing=True,
             )
             self.scheduler.start()
@@ -196,6 +206,9 @@ class SchedulerService:
                 db.commit()
                 return
 
+            # Generate Tracking ID for follow-up (Phase 2)
+            tracking_id = str(uuid.uuid4())
+
             send_result = email_service.send_email(
                 db=db,
                 sender_account_id=thread.sender_account_id,
@@ -203,6 +216,7 @@ class SchedulerService:
                 subject=f"Re: {original_msg.subject}",
                 body=follow_up_body,
                 thread_id=thread.gmail_thread_id,
+                tracking_id=tracking_id,
             )
 
             # Create message record
@@ -213,6 +227,7 @@ class SchedulerService:
                 subject=f"Re: {original_msg.subject}",
                 content=follow_up_body,
                 sent_at=datetime.utcnow(),
+                tracking_id=tracking_id,
             )
             db.add(message)
 
@@ -307,11 +322,17 @@ class SchedulerService:
                 resp = requests.get(f"{render_url}/health", timeout=10)
                 print(f"📅 🏓 Keep-alive ping: {resp.status_code}")
             else:
-                # Running locally, no need to ping
                 pass
         except Exception as e:
             print(f"📅 Keep-alive ping failed: {e}")
 
+    def _daily_scrape_and_score(self):
+        """Wrapper for daily scraping job."""
+        try:
+            scraper_service.scrape_all_sources()
+        except Exception as e:
+            print(f"📅 Failed to run daily scraper: {e}")
 
 # Singleton
 scheduler_service = SchedulerService()
+

@@ -35,6 +35,7 @@ def get_dashboard(
             joinedload(EmailThread.application),
             joinedload(EmailThread.recipient),
             joinedload(EmailThread.sender_account),
+            joinedload(EmailThread.messages),
         )
         .order_by(EmailThread.last_activity_at.desc())
     )
@@ -52,6 +53,9 @@ def get_dashboard(
 
     records = []
     for t in threads:
+        total_opens = sum(m.open_count for m in t.messages if m.open_count)
+        last_opened = max((m.last_opened_at for m in t.messages if m.last_opened_at), default=None)
+
         records.append(OutreachRecord(
             id=t.id,
             company=t.application.company if t.application else None,
@@ -65,6 +69,8 @@ def get_dashboard(
             replied=bool(t.replied),
             interview_scheduled=bool(t.interview_scheduled),
             created_at=t.created_at,
+            open_count=total_opens,
+            last_opened_at=last_opened,
         ))
 
     return DashboardResponse(records=records, total=len(records))

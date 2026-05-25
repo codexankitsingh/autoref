@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const navItems = [
   { href: '/', icon: '✨', label: 'New Outreach' },
   { href: '/dashboard', icon: '📊', label: 'Dashboard' },
+  { href: '/jobs', icon: '🔍', label: 'Job Discovery' },
   { href: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
@@ -85,7 +86,7 @@ export default function Sidebar() {
           </div>
         )}
         <span className="sidebar-version" style={{ marginTop: '8px', display: 'block' }}>
-          AutoRef v1.0.0
+          AutoRef v2.0.0
         </span>
       </div>
     </aside>

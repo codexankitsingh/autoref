@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>AutoRef Technical Documentation</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown-dark.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">AutoRef Technical Documentation</h1>
+</header>
+<h1 id="autoref-technical-documentation">AutoRef — Technical
+Documentation</h1>
+<h2 id="project-overview">1. Project Overview</h2>
+<p><strong>AutoRef</strong> is a full-stack SaaS platform that automates
+cold outreach for job seekers. It uses LLM-powered email generation
+(Google Gemini) to semantically match resumes against job descriptions,
+generates personalized referral emails, sends them via Gmail OAuth, and
+orchestrates automated follow-up sequences — all from a single
+dashboard.</p>
+<p><strong>Key Metrics:</strong> - Reduces cold email drafting from ~15
+minutes to ~45 seconds (95% reduction) - Supports 3 target role
+categories with dedicated resume matching - Automated 3-stage follow-up
+pipeline with reply detection - Multi-tenant architecture with admin
+approval flow</p>
+<hr />
+<h2 id="system-architecture">2. System Architecture</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                        FRONTEND                             │
+│              Next.js 16 (Vercel Edge)                       │
+│                                                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │  Login   │ │ Register │ │ Outreach │ │Dashboard │       │
+│  │  /login  │ │/register │ │    /     │ │/dashboard│       │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘       │
+│       │             │            │             │             │
+│       └─────────────┴─────┬──────┴─────────────┘             │
+│                     AuthContext                              │
+│              (JWT in localStorage)                           │
+│                     api.ts                                   │
+│            (Bearer token injection)                          │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ HTTPS (JSON)
+                      │ Authorization: Bearer &lt;JWT&gt;
+┌─────────────────────┴───────────────────────────────────────┐
+│                        BACKEND                              │
+│              FastAPI 0.115 (Render)                          │
+│                                                             │
+│  ┌─────────────┐   ┌──────────────────────────────┐         │
+│  │ Auth Router │   │     Protected Routers        │         │
+│  │ /api/auth/* │   │ generate, send, dashboard,   │         │
+│  │ (no auth)   │   │ followup, settings           │         │
+│  └──────┬──────┘   └──────────┬───────────────────┘         │
+│         │                     │                             │
+│  ┌──────┴─────────────────────┴──────────────┐              │
+│  │           dependencies.py                  │              │
+│  │  get_current_user → get_approved_user      │              │
+│  │  JWT decode │ bcrypt verify │ DB lookup     │              │
+│  └──────────────────┬────────────────────────┘              │
+│                     │                                       │
+│  ┌──────────────────┴────────────────────────┐              │
+│  │              Services Layer               │              │
+│  │  AIService    │ EmailService │ Scheduler   │              │
+│  │  (Gemini API) │ (Gmail API)  │(APScheduler)│              │
+│  └──────────────────┬────────────────────────┘              │
+│                     │                                       │
+│  ┌──────────────────┴────────────────────────┐              │
+│  │         SQLAlchemy ORM + SQLite           │              │
+│  │  users │ mail_accounts │ email_threads    │              │
+│  │  job_applications │ messages │ follow_ups │              │
+│  └───────────────────────────────────────────┘              │
+└─────────────────────────────────────────────────────────────┘
+
+                    EXTERNAL SERVICES
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ Google Gemini│  │  Gmail API   │  │Google Sheets │
+│  (AI/LLM)   │  │  (OAuth2)    │  │  (Export)    │
+└──────────────┘  └──────────────┘  └──────────────┘</code></pre>
+<hr />
+<h2 id="authentication-authorization">3. Authentication &amp;
+Authorization</h2>
+<h3 id="architecture-three-tier-dependency-chain">3.1 Architecture —
+Three-Tier Dependency Chain</h3>
+<pre><code>Request with Bearer token
+         │
+         ▼
+┌─────────────────────┐
+│  get_current_user   │ ← Decodes JWT, validates, returns User
+│  (401 if invalid)   │
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  get_approved_user  │ ← Checks user.is_approved == 1
+│  (403 if pending)   │
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   get_admin_user    │ ← Checks user.is_admin == 1
+│  (403 if not admin) │
+└─────────────────────┘</code></pre>
+<p><strong>Every protected endpoint</strong> uses
+<code>get_approved_user</code> as a FastAPI <code>Depends()</code>.
+Admin-only endpoints (approve/reject users) use
+<code>get_admin_user</code>.</p>
+<h3 id="jwt-token-flow">3.2 JWT Token Flow</h3>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 38%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Token</th>
+<th>Lifetime</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Access Token</td>
+<td>24 hours</td>
+<td>API authentication via
+<code>Authorization: Bearer &lt;token&gt;</code></td>
+</tr>
+<tr>
+<td>Refresh Token</td>
+<td>7 days</td>
+<td>Obtain new access token without re-login</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token payload:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sub&quot;</span><span class="fu">:</span> <span class="st">&quot;42&quot;</span><span class="fu">,</span>        <span class="er">//</span> <span class="er">user_id</span> <span class="er">as</span> <span class="er">string</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;exp&quot;</span><span class="fu">:</span> <span class="dv">1716000000</span><span class="fu">,</span>  <span class="er">//</span> <span class="er">expiry</span> <span class="er">timestamp</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;access&quot;</span>    <span class="er">//</span> <span class="er">or</span> <span class="st">&quot;refresh&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Why HS256 (symmetric) over RS256 (asymmetric)?</strong> -
+Single backend server — no need for public key distribution - Simpler
+config (one secret vs key pair) - Lower computational overhead per
+request</p>
+<h3 id="password-security">3.3 Password Security</h3>
+<ul>
+<li><strong>Algorithm:</strong> bcrypt via <code>passlib</code></li>
+<li><strong>Why bcrypt over argon2?</strong> Wider library support,
+battle-tested, sufficient for this scale</li>
+<li>Passwords are <strong>never stored in plaintext</strong> — only the
+bcrypt hash</li>
+<li><code>password_hash</code> is nullable to support Google OAuth-only
+accounts</li>
+</ul>
+<h3 id="google-sign-in-flow">3.4 Google Sign-In Flow</h3>
+<pre><code>Frontend                    Google                     Backend
+   │                          │                          │
+   │  1. Render GSI button    │                          │
+   │ ─────────────────────►   │                          │
+   │                          │                          │
+   │  2. User clicks,        │                          │
+   │     Google popup         │                          │
+   │ ◄─────────────────────   │                          │
+   │                          │                          │
+   │  3. Google returns       │                          │
+   │     ID token (JWT)       │                          │
+   │ ◄─────────────────────   │                          │
+   │                          │                          │
+   │  4. POST /api/auth/google {credential: id_token}   │
+   │ ──────────────────────────────────────────────────► │
+   │                          │                          │
+   │                          │  5. Verify ID token      │
+   │                          │ ◄────────────────────────│
+   │                          │  6. Return user info     │
+   │                          │ ────────────────────────►│
+   │                          │                          │
+   │  7. Return {access_token, refresh_token, user}      │
+   │ ◄──────────────────────────────────────────────────│
+   │                          │                          │
+   │  8. Store in localStorage│                          │
+   │  9. Redirect to /        │                          │</code></pre>
+<p><strong>Key:</strong> The Google ID token is verified server-side
+using <code>google.oauth2.id_token.verify_oauth2_token()</code>. We
+never trust the client.</p>
+<h3 id="admin-approval-flow">3.5 Admin Approval Flow</h3>
+<pre><code>New User Registers
+        │
+        ▼
+┌─────────────────┐     ┌─────────────────────────┐
+│ is_approved = 0 │────►│ Sees &quot;Pending Approval&quot;  │
+│ is_admin = 0    │     │ screen (AuthGuard)       │
+└─────────────────┘     └─────────────────────────┘
+                              │
+              Admin visits /admin panel
+                              │
+                              ▼
+                   ┌──────────────────┐
+                   │ POST /approve    │
+                   │ is_approved = 1  │
+                   └──────────────────┘
+                              │
+                              ▼
+                   User can now access app</code></pre>
+<p><strong>First-user bootstrap:</strong> The very first registered user
+OR the user matching <code>ADMIN_EMAIL</code> env var is auto-approved
+as admin.</p>
+<h3 id="gmail-oauth-mail-connection-state-parameter-fix">3.6 Gmail OAuth
+(Mail Connection) — State Parameter Fix</h3>
+<p><strong>Problem:</strong> Gmail OAuth callback is a redirect from
+Google — no Bearer token attached.</p>
+<p><strong>Solution:</strong> We pass <code>user_id</code> in the OAuth
+<code>state</code> parameter: 1. <code>GET /api/auth/gmail</code> →
+passes <code>state=current_user.id</code> to Google 2. Google redirects
+back to <code>/api/auth/gmail/callback?code=xxx&amp;state=42</code> 3.
+Callback reads <code>state</code> → looks up user by ID → links Gmail
+account</p>
+<p><strong>Scope relaxation:</strong> We set
+<code>OAUTHLIB_RELAX_TOKEN_SCOPE=1</code> because Google sometimes
+returns scope strings in a different order than requested, causing the
+library to throw “Scope has changed” errors.</p>
+<hr />
+<h2 id="multi-tenant-data-isolation">4. Multi-Tenant Data Isolation</h2>
+<p>Every data-bearing table includes <code>user_id</code> FK:</p>
+<pre><code>users (1) ──────┬──── (*) mail_accounts
+                │
+                ├──── (*) job_applications ──── (*) email_threads
+                │                                      │
+                └──── (*) email_threads ───────────────┘
+                                │
+                                ├──── (*) messages
+                                ├──── (*) follow_up_jobs
+                                └──── (*) replies</code></pre>
+<p><strong>Every query is scoped:</strong></p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dashboard — only shows current user&#39;s threads</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>db.query(EmailThread).<span class="bu">filter</span>(EmailThread.user_id <span class="op">==</span> current_user.<span class="bu">id</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Status update — verifies ownership before mutation</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>thread <span class="op">=</span> db.query(EmailThread).<span class="bu">filter</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    EmailThread.<span class="bu">id</span> <span class="op">==</span> thread_id,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    EmailThread.user_id <span class="op">==</span> current_user.<span class="bu">id</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>).first()</span></code></pre></div>
+<p><strong>Trade-off: Row-level filtering vs separate databases per
+user</strong> - Row-level filtering (our approach): simpler, works with
+SQLite, sufficient for current scale - Separate DBs: better isolation
+but complex operationally; overkill for &lt;1000 users</p>
+<hr />
+<h2 id="ai-email-generation-pipeline">5. AI Email Generation
+Pipeline</h2>
+<h3 id="two-stage-pipeline">5.1 Two-Stage Pipeline</h3>
+<pre><code>JD Text ──► Stage 1: parse_jd() ──► Structured JSON
+                                         │
+                                         ▼
+                                    Stage 2: generate_email()
+                                         │
+User Profile ─────────────────────────────┘
+Resume Link (role-specific) ──────────────┘
+                                         │
+                                         ▼
+                                  {subject, body} HTML</code></pre>
+<h3 id="role-specific-prompt-engineering">5.2 Role-Specific Prompt
+Engineering</h3>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 35%" />
+<col style="width: 28%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Bullet Categories</th>
+<th>Subject Style</th>
+<th>Resume Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend/SDE</td>
+<td>API Design, Performance, DSA</td>
+<td>“800+ TPS API at p99 &lt;50ms”</td>
+<td>SDE resume</td>
+</tr>
+<tr>
+<td>Fintech</td>
+<td>Payment Systems, Security, Reliability</td>
+<td>“ACID Transactions &amp; Idempotent APIs”</td>
+<td>Fintech resume</td>
+</tr>
+<tr>
+<td>Data Engineering</td>
+<td>Pipeline Architecture, Spark, Data Modeling</td>
+<td>“150 GB/day ingestion pipeline”</td>
+<td>DE resume</td>
+</tr>
+</tbody>
+</table>
+<p>Each role gets a tailored <code>role_configs</code> dict with: -
+<code>bullet_guidance</code>: Specific achievement categories to extract
+from the user’s profile - <code>subject_examples</code>:
+Domain-appropriate subject line templates - <code>emphasis</code>:
+Directive telling the LLM which angle to frame the profile through</p>
+<h3 id="retry-rate-limiting">5.3 Retry &amp; Rate Limiting</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _call_gemini(<span class="va">self</span>, prompt, max_retries<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> attempt <span class="kw">in</span> <span class="bu">range</span>(max_retries):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> client.models.generate_content(...)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> attempt <span class="op">&lt;</span> max_retries <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                time.sleep(<span class="dv">2</span> <span class="op">**</span> attempt)  <span class="co"># Exponential backoff</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                <span class="cf">raise</span></span></code></pre></div>
+<p><strong>Trade-off:</strong> Synchronous calls with retry vs async
+queue - Current: Synchronous with exponential backoff — simpler, user
+sees result immediately - Alternative: Celery/RQ queue — better for high
+concurrency, adds infrastructure complexity</p>
+<hr />
+<h2 id="follow-up-automation-engine">6. Follow-Up Automation Engine</h2>
+<h3 id="architecture">6.1 Architecture</h3>
+<pre><code>APScheduler (Background)
+    │
+    │  Every 1 minute
+    ▼
+┌──────────────────────────┐
+│ _process_pending_followups│
+│                          │
+│ 1. Query due jobs        │
+│ 2. Pick exactly ONE      │  ← Steady drip (1/min)
+│ 3. Execute follow-up     │
+└──────────┬───────────────┘
+           │
+           ▼
+┌──────────────────────────┐
+│  _execute_follow_up      │
+│                          │
+│ 1. Check stop conditions │  ← replied? closed?
+│ 2. Get original email    │
+│ 3. AI generates follow-up│  ← With actual sent date
+│ 4. Send via Gmail API    │
+│ 5. Update thread status  │
+└──────────────────────────┘</code></pre>
+<h3 id="key-design-decisions">6.2 Key Design Decisions</h3>
+<p><strong>Why process only 1 per minute?</strong> - Gmail rate limits:
+sending too many emails quickly triggers spam flags - Natural throttling
+without complex threading/semaphore logic - 1/min = 60/hour = more than
+enough for individual job seekers</p>
+<p><strong>Why APScheduler over Celery?</strong> - No external broker
+needed (Redis/RabbitMQ) - Runs in-process — zero infrastructure overhead
+- Sufficient for single-server deployment on Render free tier</p>
+<p><strong>Idempotency guarantees:</strong> - Each
+<code>FollowUpJob</code> has a unique
+<code>(thread_id, follow_up_number)</code> pair - Jobs transition:
+<code>pending → sent | failed | cancelled</code> (terminal states) -
+Failed jobs are NOT retried (prevents spam loops from permanent
+failures)</p>
+<h3 id="placeholder-hallucination-prevention">6.3 Placeholder
+Hallucination Prevention</h3>
+<p>Follow-up emails had LLM-generated
+<code>[Date of original email]</code> placeholders.</p>
+<p><strong>Three-layer defense:</strong> 1. <strong>Data
+injection:</strong> Pass <code>original_sent_date</code> (e.g., “May 14,
+2026”) into the prompt 2. <strong>Prompt engineering:</strong> Rule 8
+instructs the LLM to use vague phrasing (“my recent email”) 3.
+<strong>Catch-all regex:</strong>
+<code>re.sub(r'\[.*?\]', '', result)</code> strips ANY bracket-wrapped
+placeholder</p>
+<hr />
+<h2 id="database-schema">7. Database Schema</h2>
+<pre><code>┌──────────────────┐     ┌──────────────────┐
+│      users       │     │  mail_accounts   │
+├──────────────────┤     ├──────────────────┤
+│ id (PK)          │◄───┤ user_id (FK)     │
+│ name             │     │ email            │
+│ email (unique)   │     │ oauth_token      │
+│ password_hash    │     │ refresh_token    │
+│ google_id        │     │ is_active        │
+│ is_approved      │     └──────────────────┘
+│ is_admin         │
+│ profile_text     │     ┌──────────────────┐
+└──────────────────┘     │ job_applications │
+                         ├──────────────────┤
+                         │ id (PK)          │
+                    ┌───►│ user_id (FK)     │
+                    │    │ company, role    │
+                    │    │ jd_text, skills  │
+                    │    └──────────────────┘
+                    │
+┌──────────────────┐│    ┌──────────────────┐
+│  email_threads   ││    │    messages      │
+├──────────────────┤│    ├──────────────────┤
+│ id (PK)          │┘    │ thread_id (FK)   │
+│ user_id (FK)     │◄───┤ message_type     │
+│ application_id   │     │ subject, content │
+│ recipient_id     │     │ sent_at          │
+│ sender_account_id│     └──────────────────┘
+│ gmail_thread_id  │
+│ status           │     ┌──────────────────┐
+│ follow_up_count  │     │  follow_up_jobs  │
+│ replied          │     ├──────────────────┤
+└──────────────────┘◄───┤ thread_id (FK)   │
+                         │ follow_up_number │
+                         │ scheduled_time   │
+                         │ status           │
+                         └──────────────────┘</code></pre>
+<p><strong>Why SQLite over PostgreSQL?</strong> - Zero operational cost
+(no managed DB service) - File-based — works on Render free tier without
+add-ons - Sufficient for single-user/small-team usage (&lt;10K rows) -
+Trade-off: No concurrent write scaling — acceptable for this
+workload</p>
+<hr />
+<h2 id="api-endpoints">8. API Endpoints</h2>
+<h3 id="auth-no-auth-required">Auth (No auth required)</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/register</code></td>
+<td>Email/password registration</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/login</code></td>
+<td>Email/password login</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/google</code></td>
+<td>Google ID token login</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/refresh</code></td>
+<td>Refresh access token</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/auth/me</code></td>
+<td>Get current user profile</td>
+</tr>
+</tbody>
+</table>
+<h3 id="protected-requires-get_approved_user">Protected (Requires
+<code>get_approved_user</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/generate-email</code></td>
+<td>Parse JD + generate email</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/send-email</code></td>
+<td>Send email via Gmail</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard</code></td>
+<td>List user’s outreach records</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/stats</code></td>
+<td>Aggregate statistics</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/update-status</code></td>
+<td>Update thread status</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/thread/{id}</code></td>
+<td>Delete a thread</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/schedule-followups</code></td>
+<td>Schedule follow-ups</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/stop-followups</code></td>
+<td>Cancel pending follow-ups</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/profile</code></td>
+<td>Get user profile</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/profile</code></td>
+<td>Update user profile</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/mail-accounts</code></td>
+<td>List Gmail accounts</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/auth/gmail</code></td>
+<td>Initiate Gmail OAuth</td>
+</tr>
+</tbody>
+</table>
+<h3 id="admin-requires-get_admin_user">Admin (Requires
+<code>get_admin_user</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/auth/pending-users</code></td>
+<td>List unapproved users</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/approve-user</code></td>
+<td>Approve/reject a user</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="frontend-architecture">9. Frontend Architecture</h2>
+<h3 id="route-protection">Route Protection</h3>
+<pre><code>layout.tsx
+  └── AuthProvider (Context)
+        │
+        ├── /login      ← Public (redirects to / if logged in)
+        ├── /register   ← Public (redirects to / if logged in)
+        │
+        ├── /           ← AuthGuard → Outreach page
+        ├── /dashboard  ← AuthGuard → Dashboard
+        ├── /settings   ← AuthGuard → Settings
+        └── /admin      ← AuthGuard + is_admin check → Admin panel</code></pre>
+<h3 id="authguard-states">AuthGuard States</h3>
+<ol type="1">
+<li><strong>Loading</strong> → Spinner (validating token via
+<code>/api/auth/me</code>)</li>
+<li><strong>Not authenticated</strong> → Redirect to
+<code>/login</code></li>
+<li><strong>Authenticated but not approved</strong> → “Pending Approval”
+screen</li>
+<li><strong>Authenticated and approved</strong> → Render children</li>
+</ol>
+<h3 id="token-management">Token Management</h3>
+<ul>
+<li>Stored in <code>localStorage</code>: <code>autoref_token</code>,
+<code>autoref_refresh_token</code>, <code>autoref_user</code></li>
+<li>Injected via <code>api.ts</code> on every request:
+<code>Authorization: Bearer &lt;token&gt;</code></li>
+<li><strong>401 interceptor:</strong> Auto-clears auth and redirects to
+<code>/login</code></li>
+</ul>
+<hr />
+<h2 id="deployment-architecture">10. Deployment Architecture</h2>
+<pre><code>┌─────────────┐         ┌──────────────┐
+│   Vercel    │ HTTPS   │    Render    │
+│  (Frontend) │────────►│  (Backend)   │
+│  Next.js    │         │  FastAPI     │
+│  Edge CDN   │         │  SQLite DB   │
+└─────────────┘         │  APScheduler │
+                        └──────┬───────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+        Google Gemini    Gmail API      Google Sheets</code></pre>
+<p><strong>Keep-alive ping:</strong> Render free tier spins down after
+15 min inactivity. APScheduler pings <code>/health</code> every 14
+minutes to prevent this.</p>
+<hr />
+<h2 id="design-trade-offs-interview-defense">11. Design Trade-offs &amp;
+Interview Defense</h2>
+<h3 id="q-why-sqlite-instead-of-postgresql">Q: “Why SQLite instead of
+PostgreSQL?”</h3>
+<p><strong>A:</strong> Operational simplicity. SQLite is zero-config,
+file-based, and free. For a single-tenant SaaS with &lt;10K rows and no
+concurrent write pressure (one user at a time), SQLite outperforms
+managed Postgres on cost ($0 vs $7+/month) and latency (no network hop).
+Migration path to Postgres is trivial — SQLAlchemy abstracts the
+dialect.</p>
+<h3 id="q-why-not-use-celery-for-background-jobs">Q: “Why not use Celery
+for background jobs?”</h3>
+<p><strong>A:</strong> APScheduler runs in-process with no external
+broker dependency. For a single-server deployment sending ~60
+emails/hour max, the overhead of Redis + Celery worker processes is
+unjustified. APScheduler’s <code>BackgroundScheduler</code> gives us
+cron-like scheduling with 5 lines of code.</p>
+<h3 id="q-why-jwt-over-session-cookies">Q: “Why JWT over session
+cookies?”</h3>
+<p><strong>A:</strong> Decoupled frontend (Vercel) and backend (Render)
+— different domains. Session cookies require <code>SameSite=None</code>
++ complex CORS. JWTs in <code>Authorization</code> headers work cleanly
+across origins. Trade-off: JWTs can’t be server-side revoked without a
+blacklist; we accept this since tokens expire in 24h.</p>
+<h3 id="q-why-localstorage-for-tokens">Q: “Why localStorage for
+tokens?”</h3>
+<p><strong>A:</strong> Simpler than httpOnly cookies for a cross-origin
+SPA. XSS risk is mitigated by: (1) Next.js auto-escapes JSX, (2) no
+<code>dangerouslySetInnerHTML</code> on user input, (3) CSP headers on
+Vercel. For a portfolio project, this is an acceptable trade-off over
+the complexity of a BFF (Backend-For-Frontend) cookie proxy.</p>
+<h3 id="q-how-do-you-prevent-abuse">Q: “How do you prevent abuse?”</h3>
+<p><strong>A:</strong> Three layers: 1. <strong>Admin approval:</strong>
+New users can’t access the app until manually approved 2. <strong>Rate
+throttling:</strong> Follow-ups limited to 1/minute via APScheduler’s
+steady drip 3. <strong>Scope isolation:</strong> Users only see/modify
+their own data (row-level filtering on <code>user_id</code>)</p>
+<h3
+id="q-why-prompt-engineering-over-fine-tuning-for-email-generation">Q:
+“Why prompt engineering over fine-tuning for email generation?”</h3>
+<p><strong>A:</strong> Fine-tuning requires curated training data
+(hundreds of labeled email pairs) and ongoing model management. Prompt
+engineering with <code>gemini-2.5-flash-lite</code> gives us 90% of the
+quality at 0% of the training cost. The role-specific
+<code>role_configs</code> dict acts as a lightweight “soft fine-tune” —
+it injects domain vocabulary and category guidance without model
+modification.</p>
+<h3 id="q-what-happens-if-the-llm-hallucinates">Q: “What happens if the
+LLM hallucinates?”</h3>
+<p><strong>A:</strong> Three-layer defense: 1. <strong>Prompt
+rules:</strong> “DO NOT hallucinate projects, metrics, or experiences I
+do not have” 2. <strong>Factual grounding:</strong> User’s
+<code>profile_text</code> is injected as the only source of truth 3.
+<strong>Post-processing regex:</strong> Catch-all <code>\[.*?\]</code>
+strips any remaining placeholder artifacts</p>
+<hr />
+<h2 id="environment-variables-reference">12. Environment Variables
+Reference</h2>
+<h3 id="backend-render">Backend (Render)</h3>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>SQLite/Postgres connection</td>
+<td><code>sqlite:///./autoref.db</code></td>
+</tr>
+<tr>
+<td><code>GEMINI_API_KEY</code></td>
+<td>Google Gemini API key</td>
+<td><code>AIza...</code></td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_ID</code></td>
+<td>OAuth Client ID</td>
+<td><code>123...apps.googleusercontent.com</code></td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_SECRET</code></td>
+<td>OAuth Client Secret</td>
+<td><code>GOCSPX-...</code></td>
+</tr>
+<tr>
+<td><code>GOOGLE_REDIRECT_URI</code></td>
+<td>Gmail OAuth callback URL</td>
+<td><code>https://api.example.com/api/auth/gmail/callback</code></td>
+</tr>
+<tr>
+<td><code>JWT_SECRET_KEY</code></td>
+<td>JWT signing secret</td>
+<td>Random 64-char string</td>
+</tr>
+<tr>
+<td><code>ADMIN_EMAIL</code></td>
+<td>Auto-approved admin email</td>
+<td><code>you@gmail.com</code></td>
+</tr>
+<tr>
+<td><code>FRONTEND_URL</code></td>
+<td>Frontend origin for CORS</td>
+<td><code>https://app.vercel.app</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="frontend-vercel">Frontend (Vercel)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NEXT_PUBLIC_API_URL</code></td>
+<td>Backend API base URL</td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code></td>
+<td>Google Sign-In button</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document generated: May 18, 2026 | AutoRef v1.0.0</em></p>
+</body>
+</html>

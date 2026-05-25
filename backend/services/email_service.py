@@ -141,7 +141,7 @@ class EmailService:
 
     def send_email(
         self, db: Session, sender_account_id: int, recipient_email: str,
-        subject: str, body: str, thread_id: str = None
+        subject: str, body: str, thread_id: str = None, tracking_id: str = None
     ) -> dict:
         """
         Send an email via Gmail API.
@@ -165,6 +165,12 @@ class EmailService:
         message["to"] = recipient_email
         message["from"] = account.email
         message["subject"] = subject
+        
+        # Inject tracking pixel if tracking_id is provided (Phase 2)
+        if tracking_id:
+            tracking_pixel = f'<img src="https://autoref-zz6o.onrender.com/api/track/open/{tracking_id}" width="1" height="1" style="display:none" />'
+            body = f"{body}\n{tracking_pixel}"
+            
         msg_body = MIMEText(body, "html")
         message.attach(msg_body)
 

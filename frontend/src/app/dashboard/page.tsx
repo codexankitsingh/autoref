@@ -18,6 +18,8 @@ interface OutreachRecord {
   replied: boolean;
   interview_scheduled: boolean;
   created_at: string;
+  open_count: number;
+  last_opened_at: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -50,6 +52,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{ type: string; message: string } | null>(null);
   const [stats, setStats] = useState({ total: 0, sent: 0, replied: 0, interviews: 0 });
+  const [syncing, setSyncing] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -90,8 +94,6 @@ export default function DashboardPage() {
     }
   }
 
-  const [syncing, setSyncing] = useState(false);
-  
   async function handleDelete(threadId: number) {
     if (!window.confirm('Delete this outreach record?')) return;
     try {
@@ -133,9 +135,6 @@ export default function DashboardPage() {
       month: 'short', day: 'numeric', year: 'numeric',
     });
   }
-
-  // Stats
-  // ... rest
 
   return (
     <AuthGuard>
@@ -192,6 +191,20 @@ export default function DashboardPage() {
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
+            <div className="flex gap-8 ml-auto">
+              <button 
+                className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('list')}
+              >
+                📝 List
+              </button>
+              <button 
+                className={`btn btn-sm ${viewMode === 'kanban' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('kanban')}
+              >
+                📋 Kanban
+              </button>
+            </div>
             <button className="btn btn-secondary btn-sm" onClick={loadDashboard}>
               🔄 Refresh
             </button>
@@ -224,7 +237,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : viewMode === 'list' ? (
             <div className="table-container">
               <table className="table">
                 <thead>
@@ -234,6 +247,7 @@ export default function DashboardPage() {
                     <th>Recipient</th>
                     <th>Status</th>
                     <th>Follow-ups</th>
+                    <th>Opens</th>
                     <th>Last Activity</th>
                     <th>Reply</th>
                     <th>Interview</th>
@@ -257,6 +271,11 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td>{record.follow_up_count} / 3</td>
+                      <td>
+                        <span className="badge badge-draft">
+                          👁️ {record.open_count}
+                        </span>
+                      </td>
                       <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                         {formatDate(record.last_activity_at)}
                       </td>
@@ -289,7 +308,37 @@ export default function DashboardPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          ) : viewMode === 'kanban' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '60vh' }}>
+              {[
+                { title: 'To Do / Sent', statuses: ['draft', 'sent'] },
+                { title: 'Following Up', statuses: ['follow_up_1', 'follow_up_2', 'follow_up_3'] },
+                { title: 'Replied', statuses: ['replied'] },
+                { title: 'Interview / Closed', statuses: ['interview_scheduled', 'closed'] },
+              ].map(column => (
+                <div key={column.title} style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', padding: '16px', minWidth: '250px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '16px', textTransform: 'uppercase' }}>
+                    {column.title}
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {records.filter(r => column.statuses.includes(r.status)).map(record => (
+                      <div key={record.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '15px' }}>{record.company || 'Unknown Company'}</div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{record.role || 'General Application'}</div>
+                        <span className={`badge ${STATUS_BADGE_CLASS[record.status] || 'badge-draft'}`} style={{ marginBottom: '12px' }}>
+                          {STATUS_LABELS[record.status] || record.status}
+                        </span>
+                        <div style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)' }}>
+                          <span>👁️ {record.open_count}</span>
+                          <span>{record.follow_up_count} Follow-ups</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {toast && (

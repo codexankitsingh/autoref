@@ -112,6 +112,8 @@ class OutreachRecord(BaseModel):
     replied: bool
     interview_scheduled: bool
     created_at: datetime
+    open_count: int = 0
+    last_opened_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

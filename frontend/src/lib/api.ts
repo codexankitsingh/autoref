@@ -148,6 +148,8 @@ export const api = {
         replied: boolean;
         interview_scheduled: boolean;
         created_at: string;
+        open_count: number;
+        last_opened_at: string | null;
       }>;
       total: number;
     }>(`/api/dashboard${qs ? `?${qs}` : ''}`);
@@ -193,4 +195,14 @@ export const api = {
   // Gmail OAuth
   getGmailAuthUrl: () =>
     apiRequest<{ auth_url: string }>('/api/auth/gmail'),
+
+  // Job Discovery
+  getJobs: (min_score: number = 0, status?: string) => {
+    let url = `/api/jobs?min_score=${min_score}`;
+    if (status) url += `&status=${status}`;
+    return apiRequest<any>(url);
+  },
+  getJobDetails: (id: number) => apiRequest<any>(`/api/jobs/${id}`),
+  pursueJob: (id: number) => apiRequest<any>(`/api/jobs/${id}/pursue`, { method: 'POST' }),
+  triggerScrape: () => apiRequest<any>('/api/jobs/trigger-scrape', { method: 'POST' }),
 };
