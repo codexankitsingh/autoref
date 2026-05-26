@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import hashlib
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -10,6 +11,19 @@ from database import SessionLocal
 from models.scraped_job import ScrapedJob
 from models.user import User
 from services.scoring_service import scoring_service
+
+# Regex patterns that indicate a role is too senior (SDE-2/3, Senior, Staff, etc.)
+# These are filtered BEFORE burning Gemini API credits on scoring.
+SENIOR_TITLE_PATTERNS = re.compile(
+    r'\b('
+    r'sde[\s\-]?[2-9]|sde[\s\-]?ii|sde[\s\-]?iii|'
+    r'senior|sr\.?\s|staff|principal|lead|'
+    r'manager|director|architect|head\sof|vp\s|'
+    r'[5-9]\+?\s*(?:years?|yrs?)|'
+    r'\b[5-9]\-\d+\s*(?:years?|yrs?)'
+    r')\b',
+    re.IGNORECASE
+)
 
 
 class ScraperService:
@@ -119,6 +133,30 @@ class ScraperService:
             location = str(row.get("location", ""))
             description = str(row.get("description", ""))
             if description == "nan": description = ""
+
+            # ── Fast Seniority Filter (before burning Gemini credits) ──
+            # Check title for obvious senior indicators
+            if SENIOR_TITLE_PATTERNS.search(title):
+                print(f"  ⏭️ Skipped (senior title): {title} @ {company}")
+                job = ScrapedJob(
+                    user_id=user.id,
+                    job_url=job_url,
+                    job_url_hash=url_hash,
+                    title=title,
+                    company=company,
+                    location=location,
+                    description=description,
+                    source="scraper",
+                    match_score=0,
+                    match_reason="Auto-rejected: title indicates senior-level role (SDE-2/3, Senior, Staff, etc.)",
+                    missing_skills="[]",
+                    required_skills="[]",
+                    status="rejected_low_score",
+                    scored_at=datetime.utcnow()
+                )
+                db.add(job)
+                new_jobs += 1
+                continue
             
             # Score it using Gemini
             print(f"Scoring: {title} @ {company}")

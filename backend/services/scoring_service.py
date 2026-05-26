@@ -39,6 +39,11 @@ Scoring guidelines:
 - 50-69: Stretch role, I meet some requirements but am missing key skills or experience.
 - 0-49: Poor match, fundamentally different role or requires completely different seniority/stack.
 
+CRITICAL SENIORITY RULE:
+- I am targeting 0-2 years of experience roles (entry-level / junior / new grad / SDE-1).
+- If the JD explicitly requires 3+ years of experience, OR the title contains "Senior", "SDE-2", "SDE-3", "Staff", "Lead", "Principal", "Architect", immediately cap the score at 25 or below regardless of skill match.
+- A perfect skill match with wrong seniority (3+ years required) should score 15-25, NOT 70+.
+
 Return ONLY the raw JSON object, no markdown wrappers, no code blocks.
 """
         try:
