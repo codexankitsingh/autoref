@@ -102,6 +102,11 @@ graph TD
 * **Click-Tracking Analytics:** Replaces legacy pixel tracking with robust URL-wrapping and redirect routing, providing highly accurate engagement metrics without triggering enterprise spam filters.
 * **Idempotent Processing:** Terminal states (`sent`, `failed`, `cancelled`) ensure that transient network failures never result in duplicate emails.
 
+### 📊 Visual Analytics Dashboard
+* **Conversion Funnel:** A horizontal bar chart powered by **Recharts** visualizes the full pipeline (Jobs Scraped → Emails Sent → Clicked → Replied → Interviews), giving instant insight into drop-off rates at each stage.
+* **Weekly Outreach Volume:** A dual-line graph tracks weekly email volume and reply trends over the last 12 weeks, aggregated via PostgreSQL `date_trunc`.
+* **Single API Call:** Both charts are fed by a single `GET /api/dashboard/analytics` endpoint using conditional aggregation, avoiding waterfall requests on the frontend.
+
 ---
 
 ## 🛠️ Technology Stack
