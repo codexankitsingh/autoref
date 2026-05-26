@@ -169,12 +169,18 @@ class EmailService:
         message["subject"] = subject
         
         # Link Click Tracking (Phase 2 Upgrade)
-        # Replaces all <a href="URL"> with our tracking redirect endpoint
+        # Only wraps resume/document links with tracking redirects.
+        # Social links (LinkedIn, GitHub) in the signature are excluded because
+        # email security scanners pre-fetch ALL links, inflating click counts.
+        SKIP_DOMAINS = ["linkedin.com", "github.com", "twitter.com", "x.com"]
         if tracking_id:
             def replace_href(match):
                 original_url = match.group(1)
                 # Ignore mailto links or anchor links
                 if original_url.startswith("mailto:") or original_url.startswith("#"):
+                    return match.group(0)
+                # Skip social profile links (scanners pre-fetch these)
+                if any(domain in original_url.lower() for domain in SKIP_DOMAINS):
                     return match.group(0)
                 encoded_url = urllib.parse.quote(original_url, safe='')
                 tracking_url = f"https://autoref-zz6o.onrender.com/api/track/click/{tracking_id}?url={encoded_url}"
