@@ -127,6 +127,79 @@ def get_dashboard_stats(
     }
 
 
+@router.get("/dashboard/analytics")
+def get_dashboard_analytics(
+    current_user: User = Depends(get_approved_user),
+    db: Session = Depends(get_db),
+):
+    """Get conversion funnel and weekly outreach volume for charts."""
+    from models.message import Message
+    from models.scraped_job import ScrapedJob
+    from sqlalchemy import func as sql_func, case, extract
+
+    # ── Conversion Funnel ──
+    base = db.query(EmailThread).filter(EmailThread.user_id == current_user.id)
+
+    total_threads = base.count()
+    emails_sent = base.filter(EmailThread.status != "draft").count()
+
+    # Clicks: threads that have at least one message with click_count > 0
+    threads_with_clicks = (
+        base.join(Message)
+        .filter(Message.click_count > 0)
+        .distinct()
+        .count()
+    )
+
+    replies = base.filter(EmailThread.replied == 1).count()
+    interviews = base.filter(EmailThread.interview_scheduled == 1).count()
+
+    # Scraped jobs count (if table exists and has user_id)
+    try:
+        scraped_count = db.query(ScrapedJob).count()
+    except Exception:
+        scraped_count = 0
+
+    funnel = [
+        {"stage": "Jobs Scraped", "count": scraped_count},
+        {"stage": "Emails Sent", "count": emails_sent},
+        {"stage": "Clicked", "count": threads_with_clicks},
+        {"stage": "Replied", "count": replies},
+        {"stage": "Interviews", "count": interviews},
+    ]
+
+    # ── Weekly Outreach Volume (last 12 weeks) ──
+    try:
+        # PostgreSQL-compatible: use date_trunc
+        weekly_data = (
+            db.query(
+                sql_func.date_trunc('week', EmailThread.created_at).label("week"),
+                sql_func.count(EmailThread.id).label("sent"),
+                sql_func.sum(case((EmailThread.replied == 1, 1), else_=0)).label("replies"),
+            )
+            .filter(
+                EmailThread.user_id == current_user.id,
+                EmailThread.status != "draft",
+            )
+            .group_by(sql_func.date_trunc('week', EmailThread.created_at))
+            .order_by(sql_func.date_trunc('week', EmailThread.created_at))
+            .limit(12)
+            .all()
+        )
+        weekly = [
+            {
+                "week": row.week.strftime("%b %d") if row.week else "Unknown",
+                "sent": row.sent,
+                "replies": int(row.replies) if row.replies else 0,
+            }
+            for row in weekly_data
+        ]
+    except Exception:
+        weekly = []
+
+    return {"funnel": funnel, "weekly": weekly}
+
+
 @router.delete("/thread/{thread_id}")
 def delete_thread(
     thread_id: int,

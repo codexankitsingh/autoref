@@ -174,6 +174,13 @@ export const api = {
   getDashboardStats: () =>
     apiRequest<{ total: number; sent: number; replied: number; interviews: number }>('/api/dashboard/stats'),
 
+  // Analytics
+  getAnalytics: () =>
+    apiRequest<{
+      funnel: Array<{ stage: string; count: number }>;
+      weekly: Array<{ week: string; sent: number; replies: number }>;
+    }>('/api/dashboard/analytics'),
+
   // Status
   updateStatus: (data: { thread_id: number; status: string; replied?: boolean; interview_scheduled?: boolean }) =>
     apiRequest('/api/update-status', { method: 'POST', body: data }),

@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, Legend, Cell,
+} from 'recharts';
 
 interface OutreachRecord {
   id: number;
@@ -54,22 +58,29 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{ type: string; message: string } | null>(null);
   const [stats, setStats] = useState({ total: 0, sent: 0, replied: 0, interviews: 0 });
+  const [analytics, setAnalytics] = useState<{
+    funnel: Array<{ stage: string; count: number }>;
+    weekly: Array<{ week: string; sent: number; replies: number }>;
+  }>({ funnel: [], weekly: [] });
+  const [showCharts, setShowCharts] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, statsData] = await Promise.all([
+      const [data, statsData, analyticsData] = await Promise.all([
         api.getDashboard({
           status: filterStatus || undefined,
           search: search || undefined,
         }),
         api.getDashboardStats(),
+        api.getAnalytics(),
       ]);
       setRecords(data.records);
       setTotal(data.total);
       setStats(statsData);
+      setAnalytics(analyticsData);
     } catch {
       // API not reachable
     } finally {
@@ -166,6 +177,75 @@ export default function DashboardPage() {
             <div className="stat-card-label">Interviews</div>
             <div className="stat-card-value" style={{ color: 'var(--accent-primary)' }}>{stats.interviews}</div>
           </div>
+        </div>
+
+        {/* Analytics Charts */}
+        <div className="animate-in" style={{ animationDelay: '0.15s' }}>
+          <button
+            className="btn btn-sm btn-secondary"
+            onClick={() => setShowCharts(!showCharts)}
+            style={{ marginBottom: '16px' }}
+          >
+            {showCharts ? '📉 Hide Charts' : '📊 Show Charts'}
+          </button>
+
+          {showCharts && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              {/* Conversion Funnel */}
+              <div className="card" style={{ padding: '24px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                  📊 Conversion Funnel
+                </h3>
+                {analytics.funnel.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={analytics.funnel} layout="vertical" margin={{ left: 20, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis type="number" tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} />
+                      <YAxis dataKey="stage" type="category" width={100} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                      />
+                      <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                        {analytics.funnel.map((_, index) => (
+                          <Cell key={index} fill={['#6366f1', '#8b5cf6', '#a78bfa', '#10b981', '#f59e0b'][index] || '#6366f1'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                    No data yet — send some emails!
+                  </div>
+                )}
+              </div>
+
+              {/* Weekly Outreach Volume */}
+              <div className="card" style={{ padding: '24px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                  📈 Weekly Outreach Volume
+                </h3>
+                {analytics.weekly.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={analytics.weekly} margin={{ left: 0, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="week" tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} />
+                      <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                      />
+                      <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: '12px' }} />
+                      <Line type="monotone" dataKey="sent" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6', r: 4 }} name="Emails Sent" />
+                      <Line type="monotone" dataKey="replies" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 4 }} name="Replies" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                    No weekly data yet
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
