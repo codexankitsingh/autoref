@@ -145,9 +145,9 @@ About the sender (use this to personalize the email):
                     '  <li><b>[Problem Solving & CS Fundamentals]:</b> [Extract exactly 1 achievement from my competitive programming stats (LeetCode Knight / Codeforces Specialist), DSA mastery, or relevant CS coursework that demonstrates strong analytical capability.]</li>'
                 ),
                 "subject_examples": (
-                    f'   - "Codeforces Specialist & IIITG Grad | {role} at {company}"\n'
-                    f'   - "800+ TPS API at p99 <50ms | {role} at {company}"\n'
-                    f'   - "Rakuten Intern | Built auto-healing pipelines | {company} Backend opportunity"'
+                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
+                    f'   - "Rakuten SDE Intern | Referral Request for {role}, {company}"\n'
+                    f'   - "Backend Eng with API & Systems Experience — {company} {role}"'
                 ),
                 "emphasis": "Prioritize highlighting backend systems work: API design, database design, caching strategies, auth systems (JWT/OAuth), and any measurable performance/reliability metrics.",
             },
@@ -158,9 +158,9 @@ About the sender (use this to personalize the email):
                     '  <li><b>[Reliability & Observability]:</b> [Extract exactly 1 achievement related to fault tolerance, rate limiting, load testing (k6/JMeter), rollback mechanisms, monitoring, or data integrity guarantees.]</li>'
                 ),
                 "subject_examples": (
-                    f'   - "Built payment-grade ledger API (800+ TPS) | {role} at {company}"\n'
-                    f'   - "ACID Transactions & Idempotent APIs | {role} at {company}"\n'
-                    f'   - "Webhook infra with HMAC & exponential backoff | {company} Fintech opportunity"'
+                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
+                    f'   - "Backend Eng with Payments & Transaction Systems Exp — {company}"\n'
+                    f'   - "Referral Request for {role} | Fintech-focused Backend Developer"'
                 ),
                 "emphasis": "Prioritize highlighting fintech-relevant work: payment processing, ACID transactions, idempotency, webhook delivery, HMAC verification, double-entry accounting, fraud prevention, regulatory compliance, and any work with money-movement systems. Frame backend projects through a financial reliability lens.",
             },
@@ -171,9 +171,9 @@ About the sender (use this to personalize the email):
                     '  <li><b>[Data Modeling & Quality]:</b> [Extract exactly 1 achievement related to SCD Type 2, idempotent processing, BigQuery/data warehouse design, data quality guarantees, or historical consistency.]</li>'
                 ),
                 "subject_examples": (
-                    f'   - "Rakuten Intern | 150 GB/day ingestion pipeline | {role} at {company}"\n'
-                    f'   - "30% cloud cost reduction via Spark optimization | {company} DE opportunity"\n'
-                    f'   - "Built LLM-powered RCA agent for Airflow | {role} at {company}"'
+                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
+                    f'   - "Rakuten DE Intern | Referral Request for {role}, {company}"\n'
+                    f'   - "Data Eng with Pipeline & Spark Experience — {company} {role}"'
                 ),
                 "emphasis": "Prioritize highlighting data engineering work: large-scale data pipelines, Spark/PySpark, Airflow orchestration, data warehouse design, SCD strategies, idempotent processing, and cloud infrastructure optimization (GCP/AWS). Frame everything through a data reliability and scale lens.",
             },
@@ -224,7 +224,14 @@ Rules:
 2. The 1-sentence personalization MUST bridge a specific need in the JD with a specific capability in my profile.
 3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! If the JD asks for C++, explicitly highlight my C++ skills. If it asks for PySpark, highlight PySpark. Select the projects from my profile that are the BEST fit for this specific job.
 4. Replace bracketed placeholders like [Category 1] with an actionable, bolded category name related to the bullet point (e.g. <b>At Rakuten (Systems):</b> or <b>DSA & Algorithms:</b>).
-5. Set the subject line strictly to a short, punchy technical headline. Example forms:
+5. Subject line rules:
+   - Must feel like a human wrote it. Professional but not corporate-generic.
+   - Ideal format: "[Credential/Who I Am] — [What I want] at [Company]" or "[Credential] | Referral Request for [Role], [Company]"
+   - DO NOT dump raw metrics (e.g. "800+ TPS") or random JD keywords in the subject.
+   - DO NOT use clickbait, ALL CAPS, or exclamation marks.
+   - DO NOT write generic subjects like "Referral Request" or "Application for SDE Role".
+   - Keep it under 60 characters if possible.
+   Example forms:
 {config["subject_examples"]}
 
 Return ONLY a JSON object with exactly these keys:
