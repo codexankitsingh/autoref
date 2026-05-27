@@ -133,6 +133,7 @@ About the sender (use this to personalize the email):
             "Data Engineering": "https://drive.google.com/file/d/1NimIic50phQlXbFKRggrmViKwoREgcdw/view?usp=sharing",
             "Fintech": "https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing",
             "Backend/SDE": "https://drive.google.com/file/d/1tES0UhDAyLEqyupxCGQjL2VSeCk1FheU/view?usp=sharing",
+            "Systems": "https://drive.google.com/file/d/1ZcPPLmXPIRJ3biaftMc4K2H1YzkGrhpz/view?usp=sharing",
         }
         resume_link = resume_links.get(target_role, resume_links["Backend/SDE"])
 
@@ -150,6 +151,19 @@ About the sender (use this to personalize the email):
                     f'   - "Backend Eng with API & Systems Experience — {company} {role}"'
                 ),
                 "emphasis": "Prioritize highlighting backend systems work: API design, database design, caching strategies, auth systems (JWT/OAuth), and any measurable performance/reliability metrics.",
+            },
+            "Systems": {
+                "bullet_guidance": (
+                    '  <li><b>[Low-Latency & Performance Optimization]:</b> [Extract exactly 1 achievement related to reducing system latency, profiling code, optimizing memory footprint, high-throughput execution (e.g. TPS metrics), or caching (Redis/custom cache).]</li>\n'
+                    '  <li><b>[Concurrency & Distributed Systems]:</b> [Extract exactly 1 achievement related to multi-threading, concurrency control, distributed locking, pub/sub architectures (GCP Pub/Sub/Kafka), or data consistency guarantees.]</li>\n'
+                    '  <li><b>[Low-Level Systems Programming / CS Core]:</b> [Extract exactly 1 achievement demonstrating deep systems understanding, Linux internals, C/C++ or Go systems development, or custom socket/network programming.]</li>'
+                ),
+                "subject_examples": (
+                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
+                    f'   - "Rakuten Intern | Concurrency \u0026 Systems Experience — {company}"\n'
+                    f'   - "Systems/Infrastructure Engineer | Referral Request for {role}, {company}"'
+                ),
+                "emphasis": "Prioritize highlighting systems infrastructure: multi-threading, high-performance computing, memory management, Linux OS concepts, systems-level languages (C/C++, Go), low-latency networking, custom server setups, and high-concurrency architectures.",
             },
             "Fintech": {
                 "bullet_guidance": (

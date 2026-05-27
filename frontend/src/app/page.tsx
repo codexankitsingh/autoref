@@ -310,6 +310,7 @@ export default function NewOutreachPage() {
                   onChange={(e) => setTargetRole(e.target.value)}
                 >
                   <option value="Backend/SDE">Backend Engineering / SDE</option>
+                  <option value="Systems">Systems / Core Engineering</option>
                   <option value="Data Engineering">Data Engineering</option>
                   <option value="Fintech">Fintech / Payments</option>
                 </select>
