@@ -130,7 +130,7 @@ About the sender (use this to personalize the email):
 """
 
         resume_links = {
-            "Data Engineering": "https://drive.google.com/file/d/1NimIic50phQlXbFKRggrmViKwoREgcdw/view?usp=sharing",
+            "Data Engineering": "https://drive.google.com/file/d/1VOFug8htQibTPriDNo9G1jhQduR1qGah/view?usp=sharing",
             "Fintech": "https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing",
             "Backend/SDE": "https://drive.google.com/file/d/1J1pLwgjVvm0VnI2Dd3CM5_66snSCk3uv/view?usp=sharing",
             "Systems": "https://drive.google.com/file/d/1K61zy3JA7inlXdAZ6aaZD8ETl61qJ38u/view?usp=sharing",
