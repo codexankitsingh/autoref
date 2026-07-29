@@ -130,7 +130,7 @@ About the sender (use this to personalize the email):
 """
 
         resume_links = {
-            "Data Engineering": "https://drive.google.com/file/d/1VOFug8htQibTPriDNo9G1jhQduR1qGah/view?usp=sharing",
+            "Data Engineering": "https://drive.google.com/file/d/1CMY-j2tbtaTHQeSkfPjD3l0C8OB__5uH/view?usp=sharing",
             "Fintech": "https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing",
             "Backend/SDE": "https://drive.google.com/file/d/1J1pLwgjVvm0VnI2Dd3CM5_66snSCk3uv/view?usp=sharing",
             "Systems": "https://drive.google.com/file/d/1K61zy3JA7inlXdAZ6aaZD8ETl61qJ38u/view?usp=sharing",
@@ -180,16 +180,16 @@ About the sender (use this to personalize the email):
             },
             "Data Engineering": {
                 "bullet_guidance": (
-                    '  <li><b>[Data Pipeline Architecture]:</b> [Extract exactly 1 achievement from my profile related to ETL/ELT pipelines, Airflow DAGs, data ingestion at scale, or pipeline orchestration. Include volume metrics (GB/day) if available.]</li>\n'
-                    '  <li><b>[Spark & Cloud Optimization]:</b> [Extract exactly 1 achievement related to PySpark optimization, Dataproc/Databricks, partitioning strategies, query optimization, or cloud cost reduction. Include quantified improvements.]</li>\n'
-                    '  <li><b>[Data Modeling & Quality]:</b> [Extract exactly 1 achievement related to SCD Type 2, idempotent processing, BigQuery/data warehouse design, data quality guarantees, or historical consistency.]</li>'
+                    '  <li><b>[Real-Time Streaming & CDC]:</b> [Extract exactly 1 achievement from my profile related to Kafka, Debezium CDC, Spark Structured Streaming, or Apache Iceberg. Include scale metrics like 100M+ transactions if available.]</li>\n'
+                    '  <li><b>[Data Pipeline & ELT Architecture]:</b> [Extract exactly 1 achievement related to Airflow DAGs, large-scale data ingestion (e.g., 120-150 GB/day), or building robust ELT pipelines.]</li>\n'
+                    '  <li><b>[Cloud Optimization & Data Modeling]:</b> [Extract exactly 1 achievement related to PySpark tuning, Dataproc cost reduction (~30%), BigQuery performance, or SCD Type 2 historical consistency.]</li>'
                 ),
                 "subject_examples": (
                     f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
-                    f'   - "Rakuten DE Intern | Referral Request for {role}, {company}"\n'
-                    f'   - "Data Eng with Pipeline & Spark Experience — {company} {role}"'
+                    f'   - "Rakuten Data Engineer | Referral Request for {role}, {company}"\n'
+                    f'   - "Data Eng with Kafka & Spark Experience — {company} {role}"'
                 ),
-                "emphasis": "Prioritize highlighting data engineering work: large-scale data pipelines, Spark/PySpark, Airflow orchestration, data warehouse design, SCD strategies, idempotent processing, and cloud infrastructure optimization (GCP/AWS). Frame everything through a data reliability and scale lens.",
+                "emphasis": "Prioritize highlighting real-time data engineering work: Kafka, Debezium CDC, Spark Structured Streaming, Airflow orchestration, and cloud infrastructure optimization (GCP/Dataproc/BigQuery). Frame everything through a data reliability, real-time processing, and scale lens.",
             },
         }
 
