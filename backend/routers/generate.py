@@ -41,6 +41,7 @@ def generate_email(
             model_name=request.model,
             target_role=target_role,
             recipient_name=request.recipient_name,
+            jd_text=request.jd_text,
         )
 
         issues = validate_outbound_email(email_data["subject"], email_data["body"])

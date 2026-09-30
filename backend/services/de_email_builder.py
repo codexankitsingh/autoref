@@ -13,10 +13,22 @@ SIGNOFF_HTML = (
     '<a href="https://github.com/codexankitsingh" style="color: #2563eb; text-decoration: none;">GitHub</a></p>'
 )
 
-# Not in Ankit's DE profile — common LLM hallucinations for "multi-cloud"
-_BANNED_STACK_TERMS = re.compile(
-    r"\b(redshift|snowflake|databricks|azure\s*synapse)\b",
+_SENDER_FIRST_NAMES = frozenset({"ankit"})
+
+_BACKEND_HALLUCINATION = re.compile(
+    r"\b(ledger\s+api|800\+?\s*tps|p99\s+latency|scalable\s+apis?)\b",
     re.IGNORECASE,
+)
+
+_VAGUE_MULTI_CLOUD = re.compile(
+    r"\bmulti-?cloud\s+environments?\b",
+    re.IGNORECASE,
+)
+
+_FALSE_PROD_REDSHIFT = re.compile(
+    r"(redshift).{0,40}(rakuten|production|owned|built|ingestion)|"
+    r"(rakuten|production|owned|built).{0,40}(redshift)",
+    re.IGNORECASE | re.DOTALL,
 )
 
 _INVENTED_METRIC_PATTERNS = (
@@ -30,7 +42,33 @@ _SINGLE_PIPELINE_OWNERSHIP = re.compile(
     re.IGNORECASE,
 )
 
-_GCP_AND_REDSHIFT = re.compile(r"dataproc|bigquery|gcs", re.IGNORECASE)
+_LEADING_GREETING_RE = re.compile(
+    r"^(?:hi|hello|dear)\s+[a-z]+,?\s*",
+    re.IGNORECASE,
+)
+
+
+def jd_prefers_aws(skills: str, jd_text: str = "") -> bool:
+    blob = f"{skills} {jd_text}".lower()
+    return any(
+        token in blob
+        for token in (
+            "aws",
+            "redshift",
+            "glue",
+            " emr",
+            "kinesis",
+            "amazon s3",
+            " s3,",
+        )
+    )
+
+
+def sanitize_opening_paragraph(text: str) -> str:
+    """Opening must not duplicate the HTML greeting line."""
+    t = (text or "").strip()
+    t = _LEADING_GREETING_RE.sub("", t).strip()
+    return t
 
 
 def assemble_de_email(
@@ -44,7 +82,7 @@ def assemble_de_email(
     job_context_html: str = "",
 ) -> str:
     """Build HTML from validated sections — fixed narrative order."""
-    opening = escape((opening_paragraph or "").strip())
+    opening = escape(sanitize_opening_paragraph(opening_paragraph))
     parts = [
         f"<p>{greeting_line}</p>",
         f"<p>{opening}</p>",
@@ -75,47 +113,70 @@ def _wrap_li(fragment: str) -> str:
     return f"<li>{text}</li>"
 
 
-def validate_de_email_facts(body: str, recipient_name: str | None = None) -> list[str]:
+def validate_de_email_facts(
+    body: str,
+    recipient_name: str | None = None,
+    *,
+    company: str | None = None,
+    role: str | None = None,
+) -> list[str]:
     """Hard checks for known failure modes in DE outreach."""
     issues: list[str] = []
     plain = re.sub(r"<[^>]+>", " ", body or "")
     lowered = plain.lower()
 
-    if _BANNED_STACK_TERMS.search(plain):
+    if re.search(r"\bhi\s+ankit\s*,", plain, re.IGNORECASE):
         issues.append(
-            "Email mentions Redshift/Snowflake/Databricks — not in your profile. "
-            "Use GCP (BigQuery, Dataproc, GCS) or AWS StreamLake (S3, Kafka, Iceberg) separately, never mashed together."
+            'Greeting says "Hi Ankit" — that is you, not the recruiter. '
+            "Enter the hiring manager's first name in Recipient Name (or leave blank for Hi,)."
         )
 
-    if _GCP_AND_REDSHIFT.search(plain) and re.search(r"\bredshift\b", plain, re.I):
-        issues.append("Email mixes GCP production stack with AWS Redshift — reads incoherent. Pick one narrative.")
+    first = (recipient_name or "").strip().split()[0].lower() if recipient_name else ""
+    if first in _SENDER_FIRST_NAMES:
+        issues.append(
+            "Recipient Name is your own first name — use the recruiter or hiring manager's name."
+        )
+
+    if _BACKEND_HALLUCINATION.search(plain):
+        issues.append(
+            "Remove backend/API claims (ledger API, 800 TPS, p99) — not on your Data Engineering profile."
+        )
+
+    if _VAGUE_MULTI_CLOUD.search(plain):
+        issues.append('Replace vague "multi-cloud environments" with specific GCP production + StreamLake AWS project.')
+
+    if _FALSE_PROD_REDSHIFT.search(plain):
+        issues.append(
+            "Do not claim production Redshift at Rakuten. Map GCP/AWS skills to the JD honestly (StreamLake uses S3/Kafka/Iceberg)."
+        )
 
     for pat in _INVENTED_METRIC_PATTERNS:
         if pat.search(plain):
-            issues.append('Do not invent "70% MTTR reduction" — profile cites ~25–30 min triage down to minutes on reruns.')
+            issues.append('Do not invent "70% MTTR reduction" — use ~25–30 min triage down to minutes.')
 
     if _SINGLE_PIPELINE_OWNERSHIP.search(plain):
         issues.append(
-            'Avoid "I own a [N] GB/day pipeline" — you own production systems on the loyalty platform (100M+ tx/day) plus ELT; say platform/pipeline ownership, not one pipe.'
+            'Avoid "I own a [N] GB/day pipeline" — you own loyalty platform systems (100M+ tx/day) plus ELT.'
         )
 
-    if re.search(r"\bhi\s+ankit\s*,", plain, re.IGNORECASE):
-        first = (recipient_name or "").strip().split()[0].lower() if recipient_name else ""
-        if first != "ankit":
-            issues.append('Greeting must be to the recruiter/hiring manager, not "Hi Ankit," (that addresses yourself).')
+    co = (company or "").strip().lower()
+    if co and co not in ("the company", "company") and co not in lowered:
+        issues.append(f"Opening should name the company ({company}).")
+
+    if role and role.strip().lower() not in ("the position", "position"):
+        role_l = role.strip().lower()
+        if role_l[:12] not in lowered and "data engineer" not in lowered:
+            issues.append(f"Opening should reference the job title ({role}).")
 
     research_markers = ("peer review", "peer-review", "under review")
     if not any(m in lowered for m in research_markers):
-        issues.append(
-            "Research bullet must state the Auto-RCA work is under peer review (not published yet)."
-        )
-    if "364" not in plain and "364" not in (body or ""):
-        issues.append("Research section should reference 364 production Airflow failures (from your profile).")
+        issues.append("Research bullet must state the Auto-RCA work is under peer review.")
+
+    if "364" not in plain:
+        issues.append("Research section should reference 364 production Airflow failures.")
 
     compact = lowered.replace(",", "").replace(" ", "")
     if "100m" not in compact and "100million" not in compact:
-        issues.append(
-            "Mention loyalty/points platform scale (100M+ transactions/day), not only GB/day ingestion."
-        )
+        issues.append("Mention loyalty/points platform scale (100M+ transactions/day).")
 
     return issues

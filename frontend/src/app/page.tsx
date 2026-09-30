@@ -275,12 +275,12 @@ export default function NewOutreachPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Recipient Name (optional)</label>
+                <label className="form-label">Recipient first name (optional)</label>
                 <input
                   type="text"
                   className="form-input"
                   id="recipient-name"
-                  placeholder="John Doe"
+                  placeholder="Their first name — not Ankit"
                   value={recipientName}
                   onChange={(e) => setRecipientName(e.target.value)}
                 />

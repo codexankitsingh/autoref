@@ -10,7 +10,11 @@ from services.llm_client import LLMAccessDeniedError, LLMConfigurationError, gen
 from services.jd_heuristics import parse_jd_heuristic
 from services.profile_defaults import resolve_profile_text
 from services.outreach_constants import TARGET_ROLE, normalize_target_role
-from services.de_email_builder import assemble_de_email, validate_de_email_facts
+from services.de_email_builder import (
+    assemble_de_email,
+    jd_prefers_aws,
+    validate_de_email_facts,
+)
 from services.email_quality import (
     finalize_generated_email,
     has_placeholder_tokens,
@@ -262,6 +266,7 @@ Job Description:
         model_name: str = "gemini-2.5-flash-lite",
         target_role: str = TARGET_ROLE,
         recipient_name: str | None = None,
+        jd_text: str = "",
     ) -> dict:
         """
         Generate a tailored referral email based on JD and user profile.
@@ -271,6 +276,8 @@ Job Description:
         company = jd_data.get("company") or "the company"
         role = jd_data.get("role") or "the position"
         skills = ", ".join(jd_data.get("skills", []))
+        jd_excerpt = (jd_text or "")[:5000]
+        aws_jd = jd_prefers_aws(skills, jd_excerpt)
         location = jd_data.get("location", "")
         job_id = jd_data.get("job_id")
         job_link = jd_data.get("job_link")
@@ -305,50 +312,70 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
             f'   - "Airflow/Spark/BQ — {company} {role}"'
         )
 
+        aws_jd_block = ""
+        if aws_jd:
+            aws_jd_block = f"""
+This JD is AWS-heavy (Glue, EMR, S3, Redshift, Kinesis, Kafka streaming). Be honest:
+- Production at Rakuten is GCP (Airflow, Dataproc, Spark, BigQuery, GCS, Kafka CDC).
+- StreamLake project: AWS S3, Kafka, Iceberg, Spark streaming (profile) — cite for AWS familiarity.
+- In opening or ETL bullet, add ONE sentence mapping to Philips stack: e.g. Airflow→orchestration, Spark/Dataproc→EMR, BigQuery→analytics warehouse, Kafka→Kinesis-style streaming, StreamLake S3/Iceberg→S3/Glue patterns.
+- NEVER claim you run Redshift or load into Redshift in Rakuten production. You may say skills transfer to Redshift/Glue/EMR in this role.
+"""
+
+        opening_template = (
+            f"I'm Ankit — Associate Data Engineer at Rakuten India (IIIT Gwalior '26), writing about the "
+            f"{role} role at {company}. [One sentence: loyalty-scale production + JD hook — ETL, streaming, or AWS mapping.]"
+        )
+
         try:
             last_issues: list[str] = []
-            for attempt in range(2):
+            for attempt in range(3):
                 strict_block = ""
-                if attempt == 1:
+                if attempt >= 1:
                     strict_block = f"""
 STRICT RETRY — prior draft failed: {'; '.join(last_issues)}
-Fix every issue. Do not mention Redshift/Snowflake. Do not say Hi Ankit. Include peer review + 364 failures + 100M+ tx/day.
+Must include: company {company}, role title, 100M+ tx/day, peer review + 364 failures, no APIs/TPS/p99, no Hi Ankit, no production Redshift claims.
 """
-                prompt = f"""You draft a cold email from Ankit Kumar Singh (Associate Data Engineer, Rakuten India) to a hiring manager/recruiter at {company}.
-Write one coherent story — confident, specific, human. No buzzword salad or contradictory clouds.
+                prompt = f"""You draft a cold email from Ankit Kumar Singh to a hiring manager/recruiter at {company}.
+One coherent story for DATA ENGINEERING — not backend/API engineer. No buzzword list.
 
 Job context:
 - Exact title: {role}
 - Company: {company}
-- Skills in JD: {skills}
+- Parsed skills: {skills}
 - Location: {location}
 
-Profile (ONLY use facts from here):
+Job description excerpt:
+{jd_excerpt[:3500]}
+
+Profile (ONLY facts from here — no ledger API, no 800 TPS, no p99 latency):
 {profile_context}
 
 {HUMAN_OUTREACH_VOICE}
 
 {RESEARCH_PRESENTATION}
 
+{aws_jd_block}
+
 Narrative rules:
-1. You OWN production data systems at Rakuten — loyalty/points platform (100M+ transactions/day) plus 120-150 GB/day ELT on GCP. Never frame yourself as owning only one ingestion pipeline.
-2. GCP bullet: Airflow, PySpark/Dataproc, BigQuery, GCS, ~30% cost optimization, Kafka CDC when relevant. Do NOT put AWS Redshift/Snowflake/Databricks in the GCP bullet.
-3. AWS appears only if you mention the StreamLake side project separately — never "GCP Dataproc + AWS Redshift" in one breath.
-4. Research bullet is mandatory: Auto-RCA RAG for Airflow, 364 production failures, 96% actionable, deployed in prod, work currently under peer review (not published). Use ~25-30 min to minutes for triage — never "70% MTTR".
-5. opening_paragraph is plain text (no HTML, no greeting line — greeting is added separately as: {greeting_line!r}).
+1. opening_paragraph: plain text only, NO greeting (greeting is separate: {greeting_line!r}). Start like: {opening_template}
+2. Production systems at Rakuten: loyalty/points platform 100M+ transactions/day; 120-150 GB/day ELT; idempotent upserts, SCD2 — not "scalable APIs" or a single owned pipeline.
+3. bullet_production: Rakuten scale and reliability only (no API latency).
+4. bullet_gcp_platform: label <b>ETL and data platform:</b> Airflow, PySpark/Dataproc, BigQuery, GCS, Kafka CDC, ~30% cost optimization. If AWS JD, end with one honest mapping sentence to Glue/EMR/S3/Kinesis/Redshift for THIS role (skill transfer, not fake prod use).
+5. bullet_research: label <b>Peer-review research:</b> Auto-RCA RAG, 364 live Airflow failures, 96% actionable, under peer review, triage ~25-30 min to minutes.
 
 Subject line rules:
 {subject_examples}
 
 {strict_block}
 
-Return ONLY JSON with these keys (no markdown):
+Return ONLY JSON (no markdown):
 {{
   "subject": "string",
   "opening_paragraph": "plain text, 2-3 sentences",
-  "bullet_production": "HTML fragment: <b>Production at Rakuten:</b> ...",
-  "bullet_gcp_platform": "HTML fragment: <b>GCP data platform:</b> ...",
-  "bullet_research": "HTML fragment: <b>Peer-review research:</b> ... must say under peer review"
+  "bullet_production": "HTML: <b>Production at Rakuten:</b> ...",
+  "bullet_gcp_platform": "HTML: <b>ETL and data platform:</b> ...",
+  "bullet_research": "HTML: <b>Peer-review research:</b> ..."
 }}
 """
                 text = self._call_gemini(prompt, model_name=model_name)
@@ -370,7 +397,10 @@ Return ONLY JSON with these keys (no markdown):
                     company=company,
                 )
                 last_issues = validate_outbound_email(subject, body) + validate_de_email_facts(
-                    body, recipient_name
+                    body,
+                    recipient_name,
+                    company=company,
+                    role=role,
                 )
                 if not last_issues:
                     return {"subject": subject, "body": body}

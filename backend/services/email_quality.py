@@ -80,6 +80,8 @@ def recipient_first_name(recipient_name: str | None) -> str:
 
 def recipient_greeting(recipient_name: str | None) -> str:
     first = recipient_first_name(recipient_name)
+    if first.lower() in {"ankit"}:
+        return "Hi,"
     return f"Hi {first}," if first else "Hi,"
 
 

@@ -48,11 +48,16 @@ def test_finalize_strips_brackets_and_fixes_greeting():
     subject, body = finalize_generated_email(
         "Role at [Company]",
         "<p>Hi Name,</p><p>[Insert text]</p>",
-        "Ankit",
+        "Raj",
     )
     assert "[" not in subject
-    assert "Hi Ankit," in body
+    assert "Hi Raj," in body
     assert "[" not in body
+
+
+def test_greeting_never_uses_sender_name_ankit():
+    assert recipient_greeting("Ankit") == "Hi,"
+    assert recipient_greeting("Ankit Kumar Singh") == "Hi,"
 
 
 def test_normalize_company_display():
