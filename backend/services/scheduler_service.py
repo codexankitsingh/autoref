@@ -62,13 +62,16 @@ class SchedulerService:
                 id="keep_alive",
                 replace_existing=True,
             )
-            # Daily job scrape at 8:00 AM IST (2:30 AM UTC)
-            self.scheduler.add_job(
-                self._daily_scrape_and_score,
-                CronTrigger(hour=2, minute=30),
-                id="daily_scrape",
-                replace_existing=True,
-            )
+            # Daily job scrape (optional — heavy deps, off by default on Render)
+            if scraper_service.is_enabled():
+                self.scheduler.add_job(
+                    self._daily_scrape_and_score,
+                    CronTrigger(hour=2, minute=30),
+                    id="daily_scrape",
+                    replace_existing=True,
+                )
+            else:
+                print("📅 Job scraper cron skipped (disabled or requirements-scraper not installed).")
             # Weekly Intelligence Report on Monday at 8:00 AM IST (2:30 AM UTC)
             self.scheduler.add_job(
                 report_service.generate_weekly_report,

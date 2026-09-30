@@ -1,0 +1,4 @@
+# Optional — job discovery / daily scrape (not required for email outreach)
+-r requirements.txt
+python-jobspy==1.1.82
+pandas==2.3.3

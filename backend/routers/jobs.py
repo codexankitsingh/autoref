@@ -8,7 +8,7 @@ from database import get_db
 from models.scraped_job import ScrapedJob
 from models.user import User
 from dependencies import get_approved_user
-from services.scraper_service import scraper_service
+from services.scraper_service import scraper_service, scraper_unavailable_reason
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -115,7 +115,12 @@ def trigger_scrape(
     """Manually trigger the scraper job (Admin/Debug)."""
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
-        
+    if not scraper_service.is_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail=f"Job scraper unavailable. Set ENABLE_JOB_SCRAPER=true and install requirements-scraper.txt. {scraper_unavailable_reason()}",
+        )
+
     import threading
     # Run in background to not block the request
     threading.Thread(target=scraper_service.scrape_all_sources).start()

@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4o-mini"
 
+    # Job scraper (optional heavy deps — disable on Render free tier)
+    enable_job_scraper: bool = True
+
     # Gmail OAuth2
     google_client_id: str = ""
     google_client_secret: str = ""
