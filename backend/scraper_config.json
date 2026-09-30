@@ -1,15 +1,19 @@
 {
     "queries": [
         {
-            "search_term": "Software Engineer",
+            "search_term": "Associate Data Engineer",
+            "location": "Bangalore"
+        },
+        {
+            "search_term": "Data Engineer",
             "location": "India"
         },
         {
-            "search_term": "Backend Engineer",
-            "location": "Bangalore"
+            "search_term": "Junior Data Engineer",
+            "location": "Hyderabad"
         }
     ],
-    "results_wanted": 20,
-    "hours_old": 24,
-    "min_score_threshold": 50
+    "results_wanted": 25,
+    "hours_old": 72,
+    "min_score_threshold": 55
 }

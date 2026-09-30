@@ -8,6 +8,7 @@ from models.user import User
 from models.mail_account import MailAccount
 from dependencies import get_approved_user
 from services.profile_defaults import resolve_profile_text, list_profile_templates
+from services.outreach_constants import normalize_target_role
 from services.llm_client import check_ai_connectivity
 
 router = APIRouter(prefix="/api", tags=["settings"])
@@ -61,8 +62,7 @@ def create_or_update_profile(
     current_user.name = request.name
     current_user.email = request.email
     current_user.profile_text = request.profile_text
-    if request.default_target_role is not None:
-        current_user.default_target_role = request.default_target_role
+    current_user.default_target_role = normalize_target_role(request.default_target_role)
     if request.default_follow_up_interval_days is not None:
         current_user.default_follow_up_interval_days = request.default_follow_up_interval_days
     if request.default_max_follow_ups is not None:

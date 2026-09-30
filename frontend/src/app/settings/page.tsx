@@ -5,13 +5,13 @@ import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
+import { TARGET_ROLE } from '@/lib/constants';
 
 function SettingsContent() {
   // Profile state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [profileText, setProfileText] = useState('');
-  const [defaultTargetRole, setDefaultTargetRole] = useState('Data Engineering');
   const [defaultFollowUpDays, setDefaultFollowUpDays] = useState(3);
   const [defaultMaxFollowUps, setDefaultMaxFollowUps] = useState(3);
   const [defaultAiModel, setDefaultAiModel] = useState('gemini-2.5-flash-lite');
@@ -54,7 +54,6 @@ function SettingsContent() {
       setName(profile.name);
       setEmail(profile.email);
       setProfileText(profile.profile_text || '');
-      setDefaultTargetRole(profile.default_target_role || 'Data Engineering');
       setDefaultFollowUpDays(profile.default_follow_up_interval_days ?? 3);
       setDefaultMaxFollowUps(profile.default_max_follow_ups ?? 3);
       setDefaultAiModel(profile.default_ai_model || 'gemini-2.5-flash-lite');
@@ -110,7 +109,7 @@ function SettingsContent() {
         name,
         email,
         profile_text: profileText || undefined,
-        default_target_role: defaultTargetRole,
+        default_target_role: TARGET_ROLE,
         default_follow_up_interval_days: defaultFollowUpDays,
         default_max_follow_ups: defaultMaxFollowUps,
         default_ai_model: defaultAiModel,
@@ -211,9 +210,13 @@ function SettingsContent() {
             <div className="card-header">
               <h3 className="card-title">👤 Your Profile</h3>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '20px' }}>
-              Your profile info is used by AI to personalize emails.
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '12px' }}>
+              Resume text powers every generated email and job match score. AutoRef is tuned for{' '}
+              <strong style={{ color: 'var(--text-secondary)' }}>Data Engineering</strong> outreach only.
             </p>
+            <div style={{ marginBottom: '20px' }}>
+              <span className="pill pill-accent">{TARGET_ROLE}</span>
+            </div>
 
             <div className="form-group">
               <label className="form-label">Full Name *</label>
@@ -243,28 +246,16 @@ function SettingsContent() {
               <label className="form-label">Default outreach settings</label>
               <div className="grid-2" style={{ gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '12px' }}>Target role</label>
-                  <select
-                    className="form-select"
-                    value={defaultTargetRole}
-                    onChange={(e) => setDefaultTargetRole(e.target.value)}
-                  >
-                    <option value="Data Engineering">Data Engineering</option>
-                    <option value="Backend/SDE">Product Backend</option>
-                    <option value="Systems">Systems / Core Engineering</option>
-                    <option value="Fintech">Fintech / Payments</option>
-                  </select>
-                </div>
-                <div>
                   <label className="form-label" style={{ fontSize: '12px' }}>AI model</label>
                   <select
                     className="form-select"
                     value={defaultAiModel}
                     onChange={(e) => setDefaultAiModel(e.target.value)}
                   >
-                    <option value="gemini-2.5-flash-lite">Flash Lite</option>
-                    <option value="gemini-flash-latest">Flash Stable</option>
-                    <option value="gemini-2.5-flash">Flash Experimental</option>
+                    <option value="gemini-2.5-flash-lite">Gemini Flash Lite</option>
+                    <option value="gemini-flash-latest">Gemini Flash Stable</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                    <option value="openai:gpt-oss-120b">Groq GPT-OSS 120B</option>
                   </select>
                 </div>
                 <div>

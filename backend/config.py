@@ -41,18 +41,9 @@ class Settings(BaseSettings):
     # Admin email — first registered user OR this email gets auto-approved as admin
     admin_email: str = ""
 
-    # Resume links (override in .env when Drive URLs change)
+    # Data Engineering resume (override in .env when Drive URL changes)
     resume_link_data_engineering: str = (
         "https://drive.google.com/file/d/1Cji1HuzTh1SVnTcfYGzAJN-BTxnUQYmL/view?usp=drive_link"
-    )
-    resume_link_backend_sde: str = (
-        "https://drive.google.com/file/d/1J1pLwgjVvm0VnI2Dd3CM5_66snSCk3uv/view?usp=sharing"
-    )
-    resume_link_fintech: str = (
-        "https://drive.google.com/file/d/1CXlPUQJgoJ_STt8eWmTpvj_FVbyv9ZhK/view?usp=sharing"
-    )
-    resume_link_systems: str = (
-        "https://drive.google.com/file/d/1K61zy3JA7inlXdAZ6aaZD8ETl61qJ38u/view?usp=sharing"
     )
 
     @field_validator("gemini_api_key", "openai_api_key", mode="before")

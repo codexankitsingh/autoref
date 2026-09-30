@@ -85,7 +85,9 @@ export default function JobsPage() {
             <div>
               <span className="page-eyebrow">Discovery</span>
               <h1 className="page-title">Job discovery</h1>
-              <p className="page-subtitle">AI-scored roles from LinkedIn, Indeed, and Glassdoor.</p>
+              <p className="page-subtitle">
+                Data Engineer listings scored against your DE resume (Airflow, Spark, Kafka, GCP).
+              </p>
             </div>
             <button 
               className="btn btn-secondary" 

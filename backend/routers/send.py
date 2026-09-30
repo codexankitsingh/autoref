@@ -17,6 +17,7 @@ from services.scheduler_service import scheduler_service
 from services.email_quality import finalize_generated_email, validate_outbound_email
 from sqlalchemy import or_
 from config import get_settings
+from services.outreach_constants import normalize_target_role
 from dependencies import get_approved_user
 
 router = APIRouter(prefix="/api", tags=["send"])
@@ -30,10 +31,15 @@ def send_email(
 ):
     """Send an email and create tracking records, scoped to current user."""
     try:
+        target_role = normalize_target_role(
+            request.target_role or current_user.default_target_role
+        )
         subject, body = finalize_generated_email(
             request.email_subject,
             request.email_body,
             request.recipient_name,
+            target_role=target_role,
+            company=request.company,
         )
         issues = validate_outbound_email(subject, body)
         if issues:
@@ -41,8 +47,6 @@ def send_email(
                 status_code=422,
                 detail="Cannot send — fix these issues first: " + " ".join(issues),
             )
-
-        target_role = request.target_role or current_user.default_target_role or "Data Engineering"
 
         # 1. Create JobApplication (scoped to user)
         application = JobApplication(

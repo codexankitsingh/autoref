@@ -9,11 +9,26 @@ from config import get_settings
 from services.llm_client import LLMAccessDeniedError, LLMConfigurationError, generate_text
 from services.jd_heuristics import parse_jd_heuristic
 from services.profile_defaults import resolve_profile_text
+from services.outreach_constants import TARGET_ROLE, normalize_target_role
 from services.email_quality import (
     finalize_generated_email,
     has_placeholder_tokens,
+    normalize_jd_fields,
     recipient_greeting,
 )
+
+HUMAN_OUTREACH_VOICE = """
+Voice (critical — must sound like a sharp engineer wrote this in 8 minutes, not a marketing bot):
+- Short sentences. One clear idea per sentence. No filler adjectives ("incredibly", "passionate", "excited").
+- NEVER use: "Quick context on why I'd be a strong fit", "I'm reaching out regarding", "directly aligns with your focus on",
+  "I would be incredibly grateful", "hop on a brief call", "Looking forward to hearing from you!"
+- Open with who you are + the exact job title at the company + ONE concrete overlap (stack, scale, or domain from the JD).
+- Bullets: start with a 2–5 word bold hook (e.g. <b>Rakuten scale:</b>, <b>Airflow ELT:</b>) — NOT long template category names.
+- Close for a hiring manager or recruiter: resume link + interest in a brief conversation or clear next step (screening call, application link). Do NOT ask for a "referral" or "intro to the hiring manager" — they ARE the hiring side.
+- Use straight ASCII hyphens (-), not special dash characters.
+- Copy the job title EXACTLY from "Exact Job Title" below (including location suffixes like "- India"). Never truncate.
+- Company name must use proper capitalization (e.g. Philips, not philips).
+"""
 
 _DEFAULT_SIGNOFF_HTML = (
     '<p>Best regards,<br>\n'
@@ -135,20 +150,18 @@ def _deterministic_follow_up_html(follow_up_number: int, context: dict, signoff_
     if follow_up_number == 1:
         body = (
             f"<p>{greeting}</p>"
-            f"<p>I wanted to gently follow up on my recent email about the {role} opportunity at {company}. "
-            f"I'm still very interested and would appreciate any help with a referral or the right hiring contact.</p>"
+            f"<p>Bumping my note on the {role} role at {company} — still very interested. "
+            f"If it's easier to review async, I can send a short summary of my Rakuten pipeline work — otherwise happy to find time for a quick call.</p>"
         )
     elif follow_up_number == 2:
         body = (
             f"<p>{greeting}</p>"
-            f"<p>Checking in once more regarding the {role} role at {company}. "
-            f"I remain keen to contribute and would value any guidance when you have a moment.</p>"
+            f"<p>Quick follow-up on {role} at {company}. Happy to send a one-pager on my Rakuten pipeline work if useful.</p>"
         )
     else:
         body = (
             f"<p>{greeting}</p>"
-            f"<p>I know you're busy — this will be my last note about the {role} opportunity at {company}. "
-            f"If a referral is possible, I'd be grateful; otherwise, thank you for your time.</p>"
+            f"<p>Last note from me on {role} at {company}. If timing isn't right, no worries — thanks for reading.</p>"
         )
     return f"{body}\n{signoff_html}"
 
@@ -202,7 +215,8 @@ Return ONLY a valid JSON object with these exact keys, no markdown formatting, n
 Rules:
 - Extract the top 5-8 most important technical skills
 - If company name is not explicitly mentioned, try to infer from context
-- For role, use the exact job title mentioned
+- For role, use the FULL exact job title from the posting (include qualifiers like Senior, location suffix "- India", requisition text). Never shorten to a single letter.
+- Company: use standard brand capitalization (Philips, Amazon, not lowercase)
 - Return null (not "null") for missing fields
 
 Job Description:
@@ -211,43 +225,37 @@ Job Description:
         try:
             text = self._call_gemini(prompt, model_name=model_name)
             parsed = self._parse_json_response(text)
-            return {
-                "company": parsed.get("company"),
-                "role": parsed.get("role"),
-                "skills": parsed.get("skills", []),
-                "location": parsed.get("location"),
-                "job_id": parsed.get("job_id"),
-                "job_link": parsed.get("job_link"),
-            }
+            return normalize_jd_fields(
+                {
+                    "company": parsed.get("company"),
+                    "role": parsed.get("role"),
+                    "skills": parsed.get("skills", []),
+                    "location": parsed.get("location"),
+                    "job_id": parsed.get("job_id"),
+                    "job_link": parsed.get("job_link"),
+                }
+            )
         except (LLMAccessDeniedError, LLMConfigurationError) as e:
             print(f"LLM unavailable for JD parse ({e}); using heuristic fallback.")
-            return parse_jd_heuristic(jd_text)
+            return normalize_jd_fields(parse_jd_heuristic(jd_text))
         except Exception as e:
             print(f"JD parsing error: {e}")
             print("Using heuristic JD parser fallback.")
-            return parse_jd_heuristic(jd_text)
-
-    def _resume_links(self) -> dict[str, str]:
-        s = self.settings
-        return {
-            "Data Engineering": s.resume_link_data_engineering,
-            "Fintech": s.resume_link_fintech,
-            "Backend/SDE": s.resume_link_backend_sde,
-            "Systems": s.resume_link_systems,
-        }
+            return normalize_jd_fields(parse_jd_heuristic(jd_text))
 
     def generate_email(
         self,
         jd_data: dict,
         user_profile: str = "",
         model_name: str = "gemini-2.5-flash-lite",
-        target_role: str = "Backend/SDE",
+        target_role: str = TARGET_ROLE,
         recipient_name: str | None = None,
     ) -> dict:
         """
         Generate a tailored referral email based on JD and user profile.
         Returns: {"subject": str, "body": str}
         """
+        target_role = normalize_target_role(target_role)
         company = jd_data.get("company") or "the company"
         role = jd_data.get("role") or "the position"
         skills = ", ".join(jd_data.get("skills", []))
@@ -272,92 +280,45 @@ Job Description:
 About the sender (use this to personalize the email — ONLY use facts from this text):
 {user_profile}
 """
-        elif target_role == "Data Engineering":
+        else:
             profile_context = """
 About the sender: Profile not configured. Use only generic Data Engineering framing; do not invent employers or metrics.
 """
 
-        resume_links = self._resume_links()
-        resume_link = resume_links.get(target_role, resume_links["Backend/SDE"])
+        resume_link = self.settings.resume_link_data_engineering
         greeting_line = recipient_greeting(recipient_name)
-
-        # ── Role-specific bullet category guidance & subject line examples ──
-        role_configs = {
-            "Backend/SDE": {
-                "bullet_guidance": (
-                    '  <li><b>[API Design / System Architecture]:</b> [Extract exactly 1 achievement from my profile related to backend API design, microservices, REST/gRPC, or system architecture. Include metrics like TPS, latency, or uptime if available.]</li>\n'
-                    '  <li><b>[Performance & Scalability]:</b> [Extract exactly 1 achievement related to performance optimization, caching (Redis), database indexing, concurrency handling, or load testing. Include quantified improvements.]</li>\n'
-                    '  <li><b>[Problem Solving & CS Fundamentals]:</b> [Extract exactly 1 achievement from my competitive programming stats (LeetCode Knight / Codeforces Specialist), DSA mastery, or relevant CS coursework that demonstrates strong analytical capability.]</li>'
-                ),
-                "subject_examples": (
-                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
-                    f'   - "Rakuten SDE Intern | Referral Request for {role}, {company}"\n'
-                    f'   - "Backend Eng with API & Systems Experience — {company} {role}"'
-                ),
-                "emphasis": "Prioritize highlighting backend systems work: API design, database design, caching strategies, auth systems (JWT/OAuth), and any measurable performance/reliability metrics.",
-            },
-            "Systems": {
-                "bullet_guidance": (
-                    '  <li><b>[Low-Latency & Performance Optimization]:</b> [Extract exactly 1 achievement related to reducing system latency, profiling code, optimizing memory footprint, high-throughput execution (e.g. TPS metrics), or caching (Redis/custom cache).]</li>\n'
-                    '  <li><b>[Concurrency & Distributed Systems]:</b> [Extract exactly 1 achievement related to multi-threading, concurrency control, distributed locking, pub/sub architectures (GCP Pub/Sub/Kafka), or data consistency guarantees.]</li>\n'
-                    '  <li><b>[Low-Level Systems Programming / CS Core]:</b> [Extract exactly 1 achievement demonstrating deep systems understanding, Linux internals, C/C++ or Go systems development, or custom socket/network programming.]</li>'
-                ),
-                "subject_examples": (
-                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
-                    f'   - "Rakuten Intern | Concurrency \u0026 Systems Experience — {company}"\n'
-                    f'   - "Systems/Infrastructure Engineer | Referral Request for {role}, {company}"'
-                ),
-                "emphasis": "Prioritize highlighting systems infrastructure: multi-threading, high-performance computing, memory management, Linux OS concepts, systems-level languages (C/C++, Go), low-latency networking, custom server setups, and high-concurrency architectures.",
-            },
-            "Fintech": {
-                "bullet_guidance": (
-                    '  <li><b>[Payment Systems / Ledger Design]:</b> [Extract exactly 1 achievement from my profile related to payment processing, double-entry ledgers, transaction handling, ACID guarantees, or idempotency keys. Include metrics like TPS or error rates if available.]</li>\n'
-                    '  <li><b>[Security & Compliance]:</b> [Extract exactly 1 achievement related to OAuth2, HMAC verification, webhook design with retry/dedup, encryption, audit trails, or compliance-ready failure handling.]</li>\n'
-                    '  <li><b>[Reliability & Observability]:</b> [Extract exactly 1 achievement related to fault tolerance, rate limiting, load testing (k6/JMeter), rollback mechanisms, monitoring, or data integrity guarantees.]</li>'
-                ),
-                "subject_examples": (
-                    f'   - "IIIT Gwalior \'26 — interested in {role} at {company}"\n'
-                    f'   - "Backend Eng with Payments & Transaction Systems Exp — {company}"\n'
-                    f'   - "Referral Request for {role} | Fintech-focused Backend Developer"'
-                ),
-                "emphasis": "Prioritize highlighting fintech-relevant work: payment processing, ACID transactions, idempotency, webhook delivery, HMAC verification, double-entry accounting, fraud prevention, regulatory compliance, and any work with money-movement systems. Frame backend projects through a financial reliability lens.",
-            },
-            "Data Engineering": {
-                "bullet_guidance": (
-                    '  <li><b>[Production Scale & Pipeline Ownership]:</b> [Extract exactly 1 achievement about owning production data pipelines — e.g. Rakuten Points Transaction Platform (100M+ daily transactions), schema evolution, late data, partitioning, deduplication, or Spark shuffle/partition tuning. Use real metrics from the profile only.]</li>\n'
-                    '  <li><b>[ELT / Orchestration & Cloud Migration]:</b> [Extract exactly 1 achievement about Airflow-orchestrated ELT (120–150 GB/day GCS→Dataproc PySpark→BigQuery), Hadoop→DpaaS/OneCloud migration (Spark, Iceberg, BigQuery, GCS), SPDB Airflow 3.2 migration, or automated DQ/dependency checks. Match the JD stack (Airflow, Spark, BQ, Iceberg) when possible.]</li>\n'
-                    '  <li><b>[Streaming, Lakehouse, or Reliability Tooling]:</b> [Extract exactly 1 achievement best aligned with the JD: Kafka/Debezium CDC, StreamLake (Iceberg MERGE, exactly-once), SaleStream (dbt, star schema, SCD2), Dataproc cost cut (~30%), or Auto-RCA agent (Airflow failure RCA, MTTR 25–30 min → minutes). Prefer the project/skill the JD emphasizes most.]</li>'
-                ),
-                "subject_examples": (
-                    f'   - "IIIT Gwalior \'26 — {role} at {company}"\n'
-                    f'   - "Rakuten Associate DE | Referral for {role}, {company}"\n'
-                    f'   - "Spark/Airflow/BQ pipelines — {company} {role}"'
-                ),
-                "emphasis": (
-                    "Sender is Associate Data Engineer at Rakuten India (promoted from intern), NOT an SDE intern. "
-                    "Lead with production ownership, batch + streaming ELT, and GCP (BigQuery, Dataproc, GCS). "
-                    "Highlight migration/modernization (Hadoop→DpaaS, Iceberg), Airflow operations, Kafka CDC when relevant, "
-                    "and reliability (DQ, idempotent upserts, SCD2, on-call/Auto-RCA) — not generic 'interested in data' fluff. "
-                    "For junior/new-grad DE roles, mention IIIT Gwalior '26 and hands-on Rakuten production experience."
-                ),
-            },
-        }
-
-        config = role_configs.get(target_role, role_configs["Backend/SDE"])
+        sender_title = "Associate Data Engineer at Rakuten India"
+        bullet_guidance = (
+            '  <li><b>[Short hook, e.g. Rakuten scale / Loyalty pipelines]:</b> [One production win: Points platform 100M+ tx/day, 120-150 GB/day ingestion, idempotent upserts, SCD2, schema evolution — only facts from profile.]</li>\n'
+            '  <li><b>[Short hook, e.g. Airflow ELT / Cloud migration]:</b> [One win on Airflow-orchestrated GCS→PySpark→BigQuery, DpaaS migration, or ~30-40% runtime/cost improvements — match JD stack words.]</li>\n'
+            '  <li><b>[Short hook, e.g. Kafka CDC / Reliability]:</b> [One win: Kafka/Debezium, Iceberg streaming, dbt lakehouse project, or Auto-RCA cutting on-call triage from 25-30 min — pick what the JD cares about most.]</li>'
+        )
+        subject_examples = (
+            f'   - "Rakuten DE — {role} at {company}"\n'
+            f'   - "IIIT Gwalior \'26 | {role}, {company}"\n'
+            f'   - "Airflow/Spark/BQ — {company} {role}"'
+        )
+        role_emphasis = (
+            "Sender is Associate Data Engineer at Rakuten India (full-time, promoted from intern). "
+            "Lead with production ownership, batch + streaming ELT, and GCP (BigQuery, Dataproc, GCS). "
+            "Highlight migration/modernization (Hadoop→DpaaS, Iceberg), Airflow operations, Kafka CDC when relevant, "
+            "and reliability (DQ, idempotent upserts, SCD2, on-call/Auto-RCA). "
+            "Mention IIIT Gwalior '26 when the JD is junior/new-grad friendly."
+        )
 
         dynamic_format = f"""
 Format to follow EXACTLY (Use HTML tags):
 <p>{greeting_line}</p>
 
-<p>I'm Ankit, a [Current Role from profile] at <b>[Current Company]</b> (IIIT Gwalior'26). I'm reaching out regarding the {role} opportunity at {company}, as my experience with [Specific capability from your profile] directly aligns with your focus on [Specific technical challenge or goal from the JD].</p>
+<p>I'm Ankit — {sender_title} (IIIT Gwalior '26). I'm writing about the <b>{role}</b> role at <b>{company}</b>. [One sentence: tie a specific JD requirement to a specific production or project outcome from my profile — no buzzwords.]</p>
 
-<p>Quick context on why I'd be a strong fit:</p>
+<p>A few things that line up with the role:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
-{config["bullet_guidance"]}
+{bullet_guidance}
 </ul>
 
 {job_context_html}
-<p>I've included my <a href="{resume_link}">resume here</a> for your reference. I would be incredibly grateful if you'd be open to referring me for a relevant position, or connecting me with the appropriate hiring team. I would welcome the opportunity to hop on a brief call to discuss further. Looking forward to hearing from you!</p>
+<p>My resume is <a href="{resume_link}">here</a>. I'd welcome a brief conversation about fit for the role — happy to align on timing for a call or whatever the next step is on your side.</p>
 
 <p>Best regards,<br>
 Ankit Kumar Singh<br>
@@ -365,8 +326,9 @@ Ankit Kumar Singh<br>
 <a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/" style="color: #2563eb; text-decoration: none;">LinkedIn</a> | <a href="https://github.com/codexankitsingh" style="color: #2563eb; text-decoration: none;">GitHub</a></p>
 """
 
-        prompt = f"""You are writing a highly targeted cold outreach email for a recruiter at {company}.
-Your job is to analyze the job description and my profile to write an email that maximizes reply probability.
+        prompt = f"""You are Ankit Kumar Singh drafting a cold outreach email to a hiring manager or recruiter at {company}.
+Write like a strong new-grad engineer: confident, specific, respectful — never salesy or robotic.
+Audience is usually the person who can schedule a screen or advance the candidacy — not an employee referral ask.
 
 Context:
 - Company: {company}
@@ -380,23 +342,26 @@ About Me (The Sender):
 
 {dynamic_format}
 
-Role-specific emphasis:
-{config["emphasis"]}
+Data Engineering emphasis:
+{role_emphasis}
+
+{HUMAN_OUTREACH_VOICE}
 
 Rules:
 1. Preserve the EXACT HTML structure above — including the opening greeting line exactly as shown. Do NOT add extra paragraphs, greetings, or filler.
-2. The 1-sentence personalization MUST bridge a specific need in the JD with a specific capability in my profile.
-3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! If the JD asks for C++, explicitly highlight my C++ skills. If it asks for PySpark, highlight PySpark. Select the projects from my profile that are the BEST fit for this specific job.
-4. Replace bracketed placeholders like [Category 1] with an actionable, bolded category name related to the bullet point (e.g. <b>At Rakuten (Systems):</b> or <b>DSA & Algorithms:</b>).
-5. Subject line rules:
+2. The opening paragraph MUST name the exact job title "{role}" and company "{company}" (proper capitalization).
+3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! Match JD keywords (Airflow, Spark, Kafka, BigQuery, etc.) when true.
+4. Replace bracketed placeholders with a short bold hook (2-5 words) plus one crisp sentence with a metric where possible.
+5. NEVER call me Backend Engineer or SDE Intern — I am Associate Data Engineer at Rakuten India.
+6. Subject line rules:
    - Must feel like a human wrote it. Professional but not corporate-generic.
-   - Ideal format: "[Credential/Who I Am] — [What I want] at [Company]" or "[Credential] | Referral Request for [Role], [Company]"
-   - DO NOT dump raw metrics (e.g. "800+ TPS") or random JD keywords in the subject.
+   - Ideal format: "[Credential/Who I Am] — [Role] at [Company]" or "[Stack hint] — [Company] [Role]"
+   - DO NOT dump raw metrics or random JD keywords in the subject.
    - DO NOT use clickbait, ALL CAPS, or exclamation marks.
    - DO NOT write generic subjects like "Referral Request" or "Application for SDE Role".
    - Keep it under 60 characters if possible.
    Example forms:
-{config["subject_examples"]}
+{subject_examples}
 
 Return ONLY a JSON object with exactly these keys:
 {{
@@ -408,9 +373,11 @@ Return ONLY a JSON object with exactly these keys:
             text = self._call_gemini(prompt, model_name=model_name)
             result = self._parse_json_response(text)
             subject, body = finalize_generated_email(
-                result.get("subject", f"Referral Request - {role} at {company}"),
+                result.get("subject", f"{role} at {company} — Rakuten DE"),
                 result.get("body", ""),
                 recipient_name,
+                target_role=target_role,
+                company=company,
             )
             return {"subject": subject, "body": body}
         except (LLMAccessDeniedError, LLMConfigurationError):
@@ -496,6 +463,7 @@ Rules:
 {signoff_html}
 6. FORBIDDEN: square brackets [], curly braces {{}}, angle placeholders, "TBD", "insert", "your name here", or any template tokens.
 7. Do not use markdown.
+8. Sound human: no "just circling back", "gentle reminder", "incredibly grateful", or "hope this finds you well". One polite bump + same ask (conversation / next step on the role).
 {strict_rules}
 
 Return ONLY the HTML email body text, no JSON, no code fences.

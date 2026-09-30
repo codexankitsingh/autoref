@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import AuthGuard from '@/components/AuthGuard';
 import { api } from '@/lib/api';
+import { TARGET_ROLE } from '@/lib/constants';
 
 interface ParsedJD {
   company: string | null;
@@ -21,8 +22,6 @@ export default function NewOutreachPage() {
   const [followUpDays, setFollowUpDays] = useState(3);
   const [maxFollowUps, setMaxFollowUps] = useState(3);
   const [aiModel, setAiModel] = useState('gemini-2.5-flash-lite');
-  const [targetRole, setTargetRole] = useState('Data Engineering');
-
   // Generated email state
   const [parsedJD, setParsedJD] = useState<ParsedJD | null>(null);
   const [emailSubject, setEmailSubject] = useState('');
@@ -39,7 +38,6 @@ export default function NewOutreachPage() {
 
   useEffect(() => {
     loadMailAccounts();
-    let draftTargetRole: string | undefined;
     let draftAiModel: string | undefined;
     let draftFollowUpDays: number | undefined;
     let draftMaxFollowUps: number | undefined;
@@ -51,12 +49,10 @@ export default function NewOutreachPage() {
         if (parsed.recipientEmail) setRecipientEmail(parsed.recipientEmail);
         if (parsed.recipientName) setRecipientName(parsed.recipientName);
         if (parsed.aiModel) setAiModel(parsed.aiModel);
-        if (parsed.targetRole) setTargetRole(parsed.targetRole);
         if (parsed.parsedJD) setParsedJD(parsed.parsedJD);
         if (parsed.emailSubject) setEmailSubject(parsed.emailSubject);
         if (parsed.emailBody) setEmailBody(parsed.emailBody);
         if (parsed.showPreview !== undefined) setShowPreview(parsed.showPreview);
-        draftTargetRole = parsed.targetRole;
         draftAiModel = parsed.aiModel;
         draftFollowUpDays = parsed.followUpDays;
         draftMaxFollowUps = parsed.maxFollowUps;
@@ -65,7 +61,6 @@ export default function NewOutreachPage() {
       // Ignored
     }
     loadUserDefaults({
-      targetRole: draftTargetRole,
       aiModel: draftAiModel,
       followUpDays: draftFollowUpDays,
       maxFollowUps: draftMaxFollowUps,
@@ -79,20 +74,18 @@ export default function NewOutreachPage() {
       return;
     }
     const draft = {
-      jdText, recipientEmail, recipientName, aiModel, targetRole, parsedJD, emailSubject, emailBody, showPreview
+      jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview
     };
     localStorage.setItem('outreachDraft', JSON.stringify(draft));
-  }, [jdText, recipientEmail, recipientName, aiModel, targetRole, parsedJD, emailSubject, emailBody, showPreview]);
+  }, [jdText, recipientEmail, recipientName, aiModel, parsedJD, emailSubject, emailBody, showPreview]);
 
   async function loadUserDefaults(draft?: {
-    targetRole?: string;
     aiModel?: string;
     followUpDays?: number;
     maxFollowUps?: number;
   }) {
     try {
       const profile = await api.getProfile();
-      if (!draft?.targetRole && profile.default_target_role) setTargetRole(profile.default_target_role);
       if (!draft?.aiModel && profile.default_ai_model) setAiModel(profile.default_ai_model);
       if (!draft?.followUpDays && profile.default_follow_up_interval_days) {
         setFollowUpDays(profile.default_follow_up_interval_days);
@@ -132,7 +125,7 @@ export default function NewOutreachPage() {
         recipient_email: recipientEmail,
         recipient_name: recipientName || undefined,
         model: aiModel,
-        target_role: targetRole,
+        target_role: TARGET_ROLE,
       });
 
       setParsedJD(result.parsed_jd);
@@ -169,7 +162,7 @@ export default function NewOutreachPage() {
         jd_text: jdText,
         skills: parsedJD?.skills?.join(', ') || undefined,
         location: parsedJD?.location || undefined,
-        target_role: targetRole,
+        target_role: TARGET_ROLE,
       });
 
       showToast('success', `✅ Sent to ${recipientEmail}! Add next recipient to send again.`);
@@ -214,14 +207,33 @@ export default function NewOutreachPage() {
         <div className="page-header animate-in">
           <div>
             <span className="page-eyebrow">Outreach studio</span>
-            <h1 className="page-title">Craft your referral email</h1>
+            <h1 className="page-title">Data Engineering outreach</h1>
             <p className="page-subtitle">
-              Paste a JD, pick your role track, and let Gemini draft a personalized note — then review and send in one flow.
+              Paste a JD, add a recruiter or hiring manager, and generate a tailored note from your Rakuten DE resume — review, edit, send, and auto follow-up.
             </p>
           </div>
           <div className="page-header-actions">
-            <span className="pill pill-accent">{targetRole}</span>
-            <span className="pill">{aiModel.replace('gemini-', '').replace(/-/g, ' ')}</span>
+            <span className="pill pill-accent">Associate DE · Rakuten</span>
+            <span className="pill">{aiModel.replace('gemini-', '').replace('openai:', 'Groq ').replace(/-/g, ' ')}</span>
+          </div>
+        </div>
+
+        <div className="workflow-steps animate-in" style={{ animationDelay: '0.05s' }}>
+          <div className={`workflow-step ${jdText.trim() ? 'done' : 'active'}`}>
+            <span className="workflow-step-num">1</span>
+            <span>Paste JD</span>
+          </div>
+          <div className={`workflow-step ${recipientEmail.trim() ? 'done' : jdText.trim() ? 'active' : ''}`}>
+            <span className="workflow-step-num">2</span>
+            <span>Recruiter / HM</span>
+          </div>
+          <div className={`workflow-step ${showPreview ? 'done' : recipientEmail.trim() && jdText.trim() ? 'active' : ''}`}>
+            <span className="workflow-step-num">3</span>
+            <span>Generate & review</span>
+          </div>
+          <div className={`workflow-step ${showPreview ? 'active' : ''}`}>
+            <span className="workflow-step-num">4</span>
+            <span>Send</span>
           </div>
         </div>
 
@@ -256,7 +268,7 @@ export default function NewOutreachPage() {
                   type="email"
                   className="form-input"
                   id="recipient-email"
-                  placeholder="john@company.com"
+                  placeholder="recruiter@company.com"
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
                 />
@@ -335,24 +347,10 @@ export default function NewOutreachPage() {
                   <option value="gemini-2.5-flash-lite">Gemini Flash Lite</option>
                   <option value="gemini-flash-latest">Gemini Flash (latest)</option>
                   <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  <option value="openai:gpt-4o-mini">OpenAI GPT-4o mini (uses OPENAI_API_KEY)</option>
-                  <option value="openai:gpt-4o">OpenAI GPT-4o (uses OPENAI_API_KEY)</option>
+                  <option value="openai:gpt-oss-120b">Groq GPT-OSS 120B (recommended fallback)</option>
+                  <option value="openai:gpt-4o-mini">OpenAI GPT-4o mini</option>
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Target Role</label>
-                <select
-                  className="form-select"
-                  id="target-role-select"
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                >
-                  <option value="Backend/SDE">Product Backend</option>
-                  <option value="Systems">Systems / Core Engineering</option>
-                  <option value="Data Engineering">Data Engineering</option>
-                  <option value="Fintech">Fintech / Payments</option>
-                </select>
+                <p className="form-hint">Uses Gemini when available; falls back to Groq/OpenAI from Settings env.</p>
               </div>
 
               <div className="flex gap-12 mt-16">

@@ -11,6 +11,7 @@ from models.scraped_job import ScrapedJob
 from models.user import User
 from services.scoring_service import scoring_service
 from services.profile_defaults import resolve_profile_text
+from services.outreach_constants import TARGET_ROLE
 from config import get_settings
 
 # Regex patterns that indicate a role is too senior (SDE-2/3, Senior, Staff, etc.)
@@ -66,12 +67,13 @@ class ScraperService:
         if not os.path.exists(self.CONFIG_FILE):
             self.save_config({
                 "queries": [
-                    {"search_term": "Software Engineer", "location": "India"},
-                    {"search_term": "Backend Engineer", "location": "Bangalore"}
+                    {"search_term": "Associate Data Engineer", "location": "Bangalore"},
+                    {"search_term": "Data Engineer", "location": "India"},
+                    {"search_term": "Junior Data Engineer", "location": "Hyderabad"},
                 ],
-                "results_wanted": 20,
-                "hours_old": 24,
-                "min_score_threshold": 50
+                "results_wanted": 25,
+                "hours_old": 72,
+                "min_score_threshold": 55,
             })
 
     def is_enabled(self) -> bool:
@@ -152,8 +154,7 @@ class ScraperService:
             print(f"[{datetime.now()}] Daily job scrape complete.")
 
     def _process_and_score_jobs(self, jobs_df: Any, user: User, db: Session, threshold: int):
-        scoring_role = getattr(user, "default_target_role", None) or "Data Engineering"
-        user_profile = resolve_profile_text(user.profile_text, scoring_role)
+        user_profile = resolve_profile_text(user.profile_text, TARGET_ROLE)
         new_jobs = 0
         scored_jobs = 0
 

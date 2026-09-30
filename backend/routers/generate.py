@@ -7,6 +7,7 @@ from schemas import GenerateEmailRequest, GenerateEmailResponse, ParsedJD
 from services.ai_service import ai_service
 from services.email_quality import validate_outbound_email
 from services.llm_client import LLMAccessDeniedError, LLMConfigurationError
+from services.outreach_constants import normalize_target_role
 from models.user import User
 from dependencies import get_approved_user
 
@@ -30,7 +31,9 @@ def generate_email(
         user_profile = current_user.profile_text or ""
 
         # Generate email
-        target_role = request.target_role or current_user.default_target_role or "Data Engineering"
+        target_role = normalize_target_role(
+            request.target_role or current_user.default_target_role
+        )
 
         email_data = ai_service.generate_email(
             jd_data=parsed,

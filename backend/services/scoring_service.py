@@ -16,8 +16,8 @@ class ScoringService:
         # Handle empty user profile gracefully
         profile_context = user_profile if user_profile else "No profile provided. Evaluate the job based purely on standard technical requirements."
 
-        prompt = f"""You are an expert technical recruiter and career coach.
-I want you to evaluate this Job Description against my Profile.
+        prompt = f"""You are an expert technical recruiter specializing in Data Engineering roles.
+Score how well this job fits my profile for a Data Engineer outreach campaign (not SDE/backend-only roles).
 
 My Profile:
 {profile_context}
@@ -40,8 +40,9 @@ Scoring guidelines:
 - 0-49: Poor match, fundamentally different role or requires completely different seniority/stack.
 
 CRITICAL SENIORITY RULE:
-- I am targeting 0-2 years of experience roles (entry-level / junior / new grad / SDE-1 / Data Engineer I / Associate Data Engineer).
-- If the JD explicitly requires 3+ years of experience, OR the title contains "Senior", "SDE-2", "SDE-3", "Staff", "Lead", "Principal", "Architect", "Data Engineer II/III", immediately cap the score at 25 or below regardless of skill match.
+- I am an Associate Data Engineer (full-time) targeting 0-2 years roles: Data Engineer I, Associate DE, Junior DE, new grad DE.
+- If the JD is primarily software/backend/frontend with no data pipeline ownership, cap the score at 35.
+- If the JD requires 3+ years, OR the title is Senior/Staff/Lead/Principal/Architect/DE II+, cap the score at 25 or below.
 - A perfect skill match with wrong seniority (3+ years required) should score 15-25, NOT 70+.
 
 Return ONLY the raw JSON object, no markdown wrappers, no code blocks.

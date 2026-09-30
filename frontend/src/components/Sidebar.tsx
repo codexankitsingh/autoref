@@ -24,7 +24,7 @@ export default function Sidebar() {
           </div>
           <div>
             <span className="sidebar-logo-text">AutoRef</span>
-            <span className="sidebar-logo-tagline">AI outreach</span>
+            <span className="sidebar-logo-tagline">DE outreach</span>
           </div>
         </div>
       </div>
