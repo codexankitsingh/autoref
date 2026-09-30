@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     ai_provider: str = "auto"
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
-    openai_model: str = "gpt-4o-mini"
+    openai_model: str = "openai/gpt-oss-120b"
 
     # Job scraper (optional heavy deps — disable on Render free tier)
     enable_job_scraper: bool = True
