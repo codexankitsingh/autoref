@@ -5,6 +5,7 @@ import httpx
 from google import genai
 
 from config import get_settings
+from services.llm_model_ids import normalize_openai_compatible_model
 
 GEMINI_DENIED_MESSAGE = (
     "Google Gemini returned 403 PERMISSION_DENIED (your Google Cloud project is blocked or denied, "
@@ -73,7 +74,7 @@ def _call_openai(prompt: str, model_name: str) -> str:
         )
 
     base = (settings.openai_base_url or "https://api.openai.com/v1").rstrip("/")
-    model = _openai_model_name(model_name)
+    model = normalize_openai_compatible_model(_openai_model_name(model_name), base)
     url = f"{base}/chat/completions"
 
     payload = {
