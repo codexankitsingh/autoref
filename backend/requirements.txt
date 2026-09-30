@@ -8,7 +8,7 @@ pydantic-settings==2.7.0
 python-dotenv==1.0.1
 
 # Google — pin google-genai (>=1.0.0 causes 20+ version backtracks on Render)
-google-genai==1.55.0
+google-genai==2.25.0
 google-auth==2.37.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.157.0

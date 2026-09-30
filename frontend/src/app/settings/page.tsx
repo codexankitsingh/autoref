@@ -183,8 +183,9 @@ function SettingsContent() {
               {!aiHealthOk && (
                 <>
                   {' '}
-                  Add a new <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini key</a>
-                  {' '}or set <code>OPENAI_API_KEY</code> in backend <code>.env</code>, then restart the server.
+                  AQ. keys from AI Studio are valid. If you see 403 project denied, create a{' '}
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">new project/key</a>
+                  {' '}or set <code>OPENAI_API_KEY</code> on Render/local env and restart.
                 </>
               )}
             </p>

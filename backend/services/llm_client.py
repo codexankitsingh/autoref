@@ -7,10 +7,20 @@ from google import genai
 from config import get_settings
 
 GEMINI_DENIED_MESSAGE = (
-    "Google Gemini rejected this API key (403 PERMISSION_DENIED — project access denied). "
-    "Create a new key at https://aistudio.google.com/apikey or set OPENAI_API_KEY in backend/.env "
-    "to use OpenAI-compatible models (auto-fallback when Gemini fails)."
+    "Google Gemini returned 403 PERMISSION_DENIED (your Google Cloud project is blocked or denied, "
+    "not because the key starts with AQ.). AQ. keys are the new normal Auth keys from AI Studio — "
+    "use them as GEMINI_API_KEY. Fix: create a new GCP project in AI Studio, enable billing if required, "
+    "generate a fresh AQ. key, or contact Google AI support. Alternatively set OPENAI_API_KEY for fallback."
 )
+
+
+def gemini_key_kind(api_key: str) -> str:
+    k = (api_key or "").strip()
+    if k.startswith("AQ."):
+        return "auth (AQ.)"
+    if k.startswith("AIza"):
+        return "legacy (AIza)"
+    return "unknown"
 
 
 class LLMConfigurationError(Exception):
@@ -114,10 +124,47 @@ def _get_gemini_client() -> genai.Client:
     return _gemini_client
 
 
+def _call_gemini_rest(prompt: str, model_name: str, api_key: str) -> str:
+    """
+    Native Gemini REST (recommended for AQ. Auth keys).
+    See: https://ai.google.dev/gemini-api/docs/api-key
+    """
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    with httpx.Client(timeout=120.0) as client:
+        resp = client.post(
+            url,
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
+            },
+            json=payload,
+        )
+    if resp.status_code >= 400:
+        raise LLMAccessDeniedError(
+            f"Gemini REST error ({resp.status_code}): {resp.text[:400]}"
+        )
+    data = resp.json()
+    try:
+        parts = data["candidates"][0]["content"]["parts"]
+        return "".join(p.get("text", "") for p in parts).strip()
+    except (KeyError, IndexError, TypeError) as e:
+        raise LLMAccessDeniedError(f"Unexpected Gemini REST response: {e}") from e
+
+
 def _call_gemini(prompt: str, model_name: str) -> str:
-    client = _get_gemini_client()
-    response = client.models.generate_content(model=model_name, contents=prompt)
-    return response.text.strip()
+    settings = get_settings()
+    api_key = (settings.gemini_api_key or "").strip()
+    try:
+        client = _get_gemini_client()
+        response = client.models.generate_content(model=model_name, contents=prompt)
+        return response.text.strip()
+    except Exception as sdk_error:
+        # AQ. Auth keys: retry via native REST + x-goog-api-key (some SDK versions mis-route)
+        if api_key.startswith("AQ."):
+            print(f"Gemini SDK failed ({sdk_error}); retrying native REST for AQ. key...")
+            return _call_gemini_rest(prompt, model_name, api_key)
+        raise
 
 
 def generate_text(prompt: str, model_name: str = "gemini-2.5-flash-lite", max_retries: int = 3) -> str:
@@ -162,8 +209,10 @@ def generate_text(prompt: str, model_name: str = "gemini-2.5-flash-lite", max_re
 def check_ai_connectivity() -> dict:
     """Lightweight probe for health endpoint / settings diagnostics."""
     settings = get_settings()
+    key = (settings.gemini_api_key or "").strip()
     result = {
-        "gemini_configured": bool((settings.gemini_api_key or "").strip()),
+        "gemini_configured": bool(key),
+        "gemini_key_kind": gemini_key_kind(key) if key else "none",
         "openai_configured": bool((settings.openai_api_key or "").strip()),
         "ai_provider": settings.ai_provider,
         "gemini_ok": False,
