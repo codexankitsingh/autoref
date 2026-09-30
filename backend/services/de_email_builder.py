@@ -1,8 +1,7 @@
-"""Structured Data Engineering outreach email assembly and factual validation."""
+"""DE outreach email assembly and light hallucination checks."""
 from __future__ import annotations
 
 import re
-from html import escape
 
 SIGNOFF_HTML = (
     '<p>Best regards,<br>\n'
@@ -21,7 +20,7 @@ _BACKEND_HALLUCINATION = re.compile(
 )
 
 _VAGUE_MULTI_CLOUD = re.compile(
-    r"\bmulti-?cloud\s+environments?\b",
+    r"\bmulti-?cloud\s+(?:etl|environments?)\b",
     re.IGNORECASE,
 )
 
@@ -31,20 +30,8 @@ _FALSE_PROD_REDSHIFT = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
-_INVENTED_METRIC_PATTERNS = (
-    re.compile(r"\b70\s*%\s*(?:mttr|reduction|faster)", re.IGNORECASE),
-    re.compile(r"mttr\s*by\s*70", re.IGNORECASE),
-    re.compile(r"reduced\s+mttr\s+by\s*70", re.IGNORECASE),
-)
-
-_SINGLE_PIPELINE_OWNERSHIP = re.compile(
-    r"\bI\s+own\s+(?:a\s+)?(?:an?\s+)?\d",
-    re.IGNORECASE,
-)
-
-_LEADING_GREETING_RE = re.compile(
-    r"^(?:hi|hello|dear)\s+[a-z]+,?\s*",
-    re.IGNORECASE,
+_TELEGRAPH_BULLET = re.compile(
+    r"<li>\s*[A-Z][a-z]+\s+[a-z]+\s+[a-z]+\.\s*[A-Z]",
 )
 
 
@@ -52,131 +39,60 @@ def jd_prefers_aws(skills: str, jd_text: str = "") -> bool:
     blob = f"{skills} {jd_text}".lower()
     return any(
         token in blob
-        for token in (
-            "aws",
-            "redshift",
-            "glue",
-            " emr",
-            "kinesis",
-            "amazon s3",
-            " s3,",
-        )
+        for token in ("aws", "redshift", "glue", " emr", "kinesis", "amazon s3", " s3,")
     )
 
 
-def sanitize_opening_paragraph(text: str) -> str:
-    """Opening must not duplicate the HTML greeting line."""
-    t = (text or "").strip()
-    t = _LEADING_GREETING_RE.sub("", t).strip()
-    return t
-
-
-def assemble_de_email(
+def assemble_natural_email(
     *,
     greeting_line: str,
-    opening_paragraph: str,
-    bullet_production: str,
-    bullet_gcp_platform: str,
-    bullet_research: str,
+    body_html: str,
     resume_link: str,
     job_context_html: str = "",
 ) -> str:
-    """Build HTML from validated sections — fixed narrative order."""
-    opening = escape(sanitize_opening_paragraph(opening_paragraph))
-    parts = [
-        f"<p>{greeting_line}</p>",
-        f"<p>{opening}</p>",
-        "<p>Relevant background:</p>",
-        '<ul style="margin-top: 0; padding-left: 20px;">',
-        _wrap_li(bullet_production),
-        _wrap_li(bullet_gcp_platform),
-        _wrap_li(bullet_research),
-        "</ul>",
-    ]
+    """Greeting + LLM body + optional job link block + resume CTA + signoff."""
+    middle = (body_html or "").strip()
+    # Strip duplicate greeting if model added one
+    middle = re.sub(r"^<p>\s*(?:Hi|Hello|Dear)\s+[^<]*</p>\s*", "", middle, flags=re.I)
+
+    parts = [f"<p>{greeting_line}</p>", middle]
     if job_context_html.strip():
         parts.append(job_context_html.strip())
-    parts.append(
-        f'<p>My resume is <a href="{resume_link}">here</a>. '
-        "I'd welcome a brief conversation about fit for the role — "
-        "happy to align on timing for a call or whatever the next step is on your side.</p>"
-    )
+    if resume_link not in middle:
+        parts.append(
+            f'<p>My resume is <a href="{resume_link}">here</a>. '
+            "I'd welcome a brief conversation about fit for the role — "
+            "happy to align on timing for a call or whatever the next step is on your side.</p>"
+        )
     parts.append(SIGNOFF_HTML)
     return "\n\n".join(parts)
 
 
-def _wrap_li(fragment: str) -> str:
-    text = (fragment or "").strip()
-    if not text:
-        return "<li></li>"
-    if text.lower().startswith("<li"):
-        return text if text.lower().endswith("</li>") else f"{text}</li>"
-    return f"<li>{text}</li>"
-
-
-def validate_de_email_facts(
+def validate_de_hallucinations(
     body: str,
     recipient_name: str | None = None,
-    *,
-    company: str | None = None,
-    role: str | None = None,
 ) -> list[str]:
-    """Hard checks for known failure modes in DE outreach."""
+    """Only block clear factual / tone failures — not narrative style."""
     issues: list[str] = []
     plain = re.sub(r"<[^>]+>", " ", body or "")
-    lowered = plain.lower()
 
     if re.search(r"\bhi\s+ankit\s*,", plain, re.IGNORECASE):
-        issues.append(
-            'Greeting says "Hi Ankit" — that is you, not the recruiter. '
-            "Enter the hiring manager's first name in Recipient Name (or leave blank for Hi,)."
-        )
+        issues.append('Do not greet yourself as "Hi Ankit" — use the recruiter\'s name.')
 
     first = (recipient_name or "").strip().split()[0].lower() if recipient_name else ""
     if first in _SENDER_FIRST_NAMES:
-        issues.append(
-            "Recipient Name is your own first name — use the recruiter or hiring manager's name."
-        )
+        issues.append("Recipient Name should be the hiring contact, not your own first name.")
 
     if _BACKEND_HALLUCINATION.search(plain):
-        issues.append(
-            "Remove backend/API claims (ledger API, 800 TPS, p99) — not on your Data Engineering profile."
-        )
+        issues.append("Remove invented backend/API metrics (not on your DE profile).")
 
     if _VAGUE_MULTI_CLOUD.search(plain):
-        issues.append('Replace vague "multi-cloud environments" with specific GCP production + StreamLake AWS project.')
+        issues.append('Avoid vague "multi-cloud ETL" — name GCP production and StreamLake/AWS project specifically.')
 
     if _FALSE_PROD_REDSHIFT.search(plain):
-        issues.append(
-            "Do not claim production Redshift at Rakuten. Map GCP/AWS skills to the JD honestly (StreamLake uses S3/Kafka/Iceberg)."
-        )
+        issues.append("Do not claim you run Redshift in Rakuten production.")
 
-    for pat in _INVENTED_METRIC_PATTERNS:
-        if pat.search(plain):
-            issues.append('Do not invent "70% MTTR reduction" — use ~25–30 min triage down to minutes.')
-
-    if _SINGLE_PIPELINE_OWNERSHIP.search(plain):
-        issues.append(
-            'Avoid "I own a [N] GB/day pipeline" — you own loyalty platform systems (100M+ tx/day) plus ELT.'
-        )
-
-    co = (company or "").strip().lower()
-    if co and co not in ("the company", "company") and co not in lowered:
-        issues.append(f"Opening should name the company ({company}).")
-
-    if role and role.strip().lower() not in ("the position", "position"):
-        role_l = role.strip().lower()
-        if role_l[:12] not in lowered and "data engineer" not in lowered:
-            issues.append(f"Opening should reference the job title ({role}).")
-
-    research_markers = ("peer review", "peer-review", "under review")
-    if not any(m in lowered for m in research_markers):
-        issues.append("Research bullet must state the Auto-RCA work is under peer review.")
-
-    if "364" not in plain:
-        issues.append("Research section should reference 364 production Airflow failures.")
-
-    compact = lowered.replace(",", "").replace(" ", "")
-    if "100m" not in compact and "100million" not in compact:
-        issues.append("Mention loyalty/points platform scale (100M+ transactions/day).")
+    if _TELEGRAPH_BULLET.search(body or ""):
+        issues.append("Write bullet points as full sentences, not telegram-style fragments.")
 
     return issues

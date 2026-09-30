@@ -11,9 +11,9 @@ from services.jd_heuristics import parse_jd_heuristic
 from services.profile_defaults import resolve_profile_text
 from services.outreach_constants import TARGET_ROLE, normalize_target_role
 from services.de_email_builder import (
-    assemble_de_email,
+    assemble_natural_email,
     jd_prefers_aws,
-    validate_de_email_facts,
+    validate_de_hallucinations,
 )
 from services.email_quality import (
     finalize_generated_email,
@@ -23,27 +23,17 @@ from services.email_quality import (
     validate_outbound_email,
 )
 
-HUMAN_OUTREACH_VOICE = """
-Voice (critical — must sound like a sharp engineer wrote this in 8 minutes, not a marketing bot):
-- Short sentences. One clear idea per sentence. No filler adjectives ("incredibly", "passionate", "excited").
-- NEVER use: "Quick context on why I'd be a strong fit", "I'm reaching out regarding", "directly aligns with your focus on",
-  "I would be incredibly grateful", "hop on a brief call", "Looking forward to hearing from you!"
-- Opening paragraph: who you are + exact role at company + ONE sharp differentiator (pick the best JD fit): loyalty-scale distributed systems (100M+ tx/day), multi-cloud (GCP+AWS), real-time Kafka/CDC, cost/runtime optimization (~30%), peer-review research/Auto-RCA, or strong CS/algorithms (LeetCode Knight) — NOT a generic "I built an Airflow pipeline that ingests X GB".
-- Do NOT open with only batch ELT volume; save pipeline mechanics for bullets.
-- Use cloud/stack names from the profile (GCP, BigQuery, Dataproc, GCS, Kafka). Never invent S3/Redshift/Snowflake unless they appear in the JD AND you honestly map from equivalent GCP/AWS experience in the profile.
-- Bullets: start with a 2–5 word bold hook (e.g. <b>Rakuten scale:</b>, <b>Airflow ELT:</b>) — NOT long template category names.
-- Close for a hiring manager or recruiter: resume link + interest in a brief conversation or clear next step (screening call, application link). Do NOT ask for a "referral" or "intro to the hiring manager" — they ARE the hiring side.
-- Use straight ASCII hyphens (-), not special dash characters.
-- Copy the job title EXACTLY from "Exact Job Title" below (including location suffixes like "- India"). Never truncate.
-- Company name must use proper capitalization (e.g. Philips, not philips).
-"""
+SIMPLE_EMAIL_GUIDE = """
+Write like a real Associate Data Engineer emailing a hiring manager: clear, warm, professional, ~130-200 words in the body.
 
-RESEARCH_PRESENTATION = """
-Peer-review research (use when JD touches reliability, observability, on-call, ML on data platforms, or Airflow ops):
-- Frame as production impact first, publication second — e.g. "I built and studied an LLM RCA system on 364 live Airflow failures (96% actionable per senior engineers); that work is under peer review."
-- Good one-liner for opening OR bullet: "Alongside pipeline ownership, I shipped an Auto-RCA agent (peer-review research) that pulls Airflow on-call triage from ~25–30 minutes down to minutes on eligible reruns."
-- Avoid: "industry grade paper", "published paper" (not published yet), long methodology, or listing co-authors in a cold email.
-- Prefer one crisp clause in the opening when reliability/ML is in the JD; otherwise put the full research bullet in slot 3 with the 364 / 96% metrics.
+Goals:
+1. Mirror the JD — pick the 3-5 requirements from the posting that genuinely match the profile and weave them into a short story (not a keyword list).
+2. Establish credibility: Rakuten production ownership, loyalty/points scale (100M+ tx/day), ETL/streaming on GCP, optimization, peer-review Auto-RCA research when relevant.
+3. Sound human — varied sentence length, no buzzword dumps ("multi-cloud ETL", "synergy", "passionate").
+
+Do NOT invent skills, clouds, or metrics. No ledger API / 800 TPS / p99. For AWS-heavy JDs, map honestly from GCP prod + StreamLake (S3, Kafka, Iceberg) to Glue/EMR/S3/Kinesis — do not claim Redshift in Rakuten prod.
+
+If bullets are used, each <li> must be one or two full sentences — never staccato "Verb object. Verb object." fragments.
 """
 
 _DEFAULT_SIGNOFF_HTML = (
@@ -312,80 +302,60 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
             f'   - "Airflow/Spark/BQ — {company} {role}"'
         )
 
-        aws_jd_block = ""
+        aws_hint = ""
         if aws_jd:
-            aws_jd_block = f"""
-This JD is AWS-heavy (Glue, EMR, S3, Redshift, Kinesis, Kafka streaming). Be honest:
-- Production at Rakuten is GCP (Airflow, Dataproc, Spark, BigQuery, GCS, Kafka CDC).
-- StreamLake project: AWS S3, Kafka, Iceberg, Spark streaming (profile) — cite for AWS familiarity.
-- In opening or ETL bullet, add ONE sentence mapping to Philips stack: e.g. Airflow→orchestration, Spark/Dataproc→EMR, BigQuery→analytics warehouse, Kafka→Kinesis-style streaming, StreamLake S3/Iceberg→S3/Glue patterns.
-- NEVER claim you run Redshift or load into Redshift in Rakuten production. You may say skills transfer to Redshift/Glue/EMR in this role.
-"""
-
-        opening_template = (
-            f"I'm Ankit — Associate Data Engineer at Rakuten India (IIIT Gwalior '26), writing about the "
-            f"{role} role at {company}. [One sentence: loyalty-scale production + JD hook — ETL, streaming, or AWS mapping.]"
-        )
+            aws_hint = (
+                "This role emphasizes AWS (Glue, EMR, S3, Redshift, Kinesis). "
+                "Production stack is GCP; mention StreamLake for AWS S3/Kafka/Iceberg. "
+                "One natural sentence on skill transfer to their AWS tools — no fake Redshift-at-Rakuten claims."
+            )
 
         try:
             last_issues: list[str] = []
-            for attempt in range(3):
-                strict_block = ""
-                if attempt >= 1:
-                    strict_block = f"""
-STRICT RETRY — prior draft failed: {'; '.join(last_issues)}
-Must include: company {company}, role title, 100M+ tx/day, peer review + 364 failures, no APIs/TPS/p99, no Hi Ankit, no production Redshift claims.
-"""
-                prompt = f"""You draft a cold email from Ankit Kumar Singh to a hiring manager/recruiter at {company}.
-One coherent story for DATA ENGINEERING — not backend/API engineer. No buzzword list.
+            for attempt in range(2):
+                retry = ""
+                if attempt == 1:
+                    retry = f"Fix these issues: {'; '.join(last_issues)}"
 
-Job context:
-- Exact title: {role}
-- Company: {company}
-- Parsed skills: {skills}
-- Location: {location}
+                prompt = f"""Draft one outreach email from Ankit Kumar Singh (Associate Data Engineer, Rakuten India) to a hiring manager/recruiter.
 
-Job description excerpt:
-{jd_excerpt[:3500]}
+Role: {role}
+Company: {company}
+Location: {location}
+JD skills (parsed): {skills}
+{aws_hint}
 
-Profile (ONLY facts from here — no ledger API, no 800 TPS, no p99 latency):
+Job description:
+{jd_excerpt[:4000]}
+
+My profile (facts only):
 {profile_context}
 
-{HUMAN_OUTREACH_VOICE}
+{SIMPLE_EMAIL_GUIDE}
 
-{RESEARCH_PRESENTATION}
+The app adds greeting separately — use exactly this greeting on the first line when you write (for context only): {greeting_line}
+Do NOT repeat the greeting inside body_html.
 
-{aws_jd_block}
+Structure body_html as 2-3 HTML <p> paragraphs telling one story: who I am, why this JD fits, strongest proof from Rakuten (+ peer-review Auto-RCA if it matches the JD). Optional <ul> with max 3 <li> only if it reads better — each li a full sentence.
 
-Narrative rules:
-1. opening_paragraph: plain text only, NO greeting (greeting is separate: {greeting_line!r}). Start like: {opening_template}
-2. Production systems at Rakuten: loyalty/points platform 100M+ transactions/day; 120-150 GB/day ELT; idempotent upserts, SCD2 — not "scalable APIs" or a single owned pipeline.
-3. bullet_production: Rakuten scale and reliability only (no API latency).
-4. bullet_gcp_platform: label <b>ETL and data platform:</b> Airflow, PySpark/Dataproc, BigQuery, GCS, Kafka CDC, ~30% cost optimization. If AWS JD, end with one honest mapping sentence to Glue/EMR/S3/Kinesis/Redshift for THIS role (skill transfer, not fake prod use).
-5. bullet_research: label <b>Peer-review research:</b> Auto-RCA RAG, 364 live Airflow failures, 96% actionable, under peer review, triage ~25-30 min to minutes.
+Name "{company}" and the job title in the first paragraph. Maximize honest JD match.
 
-Subject line rules:
+Subject examples:
 {subject_examples}
 
-{strict_block}
+{retry}
 
-Return ONLY JSON (no markdown):
+Return ONLY JSON:
 {{
   "subject": "string",
-  "opening_paragraph": "plain text, 2-3 sentences",
-  "bullet_production": "HTML: <b>Production at Rakuten:</b> ...",
-  "bullet_gcp_platform": "HTML: <b>ETL and data platform:</b> ...",
-  "bullet_research": "HTML: <b>Peer-review research:</b> ..."
+  "body_html": "HTML paragraphs only (no greeting, no sign-off, no resume link — app adds those)"
 }}
 """
                 text = self._call_gemini(prompt, model_name=model_name)
                 result = self._parse_json_response(text)
-                body = assemble_de_email(
+                body = assemble_natural_email(
                     greeting_line=greeting_line,
-                    opening_paragraph=result.get("opening_paragraph", ""),
-                    bullet_production=result.get("bullet_production", ""),
-                    bullet_gcp_platform=result.get("bullet_gcp_platform", ""),
-                    bullet_research=result.get("bullet_research", ""),
+                    body_html=result.get("body_html", result.get("body", "")),
                     resume_link=resume_link,
                     job_context_html=job_context_html,
                 )
@@ -396,11 +366,8 @@ Return ONLY JSON (no markdown):
                     target_role=target_role,
                     company=company,
                 )
-                last_issues = validate_outbound_email(subject, body) + validate_de_email_facts(
-                    body,
-                    recipient_name,
-                    company=company,
-                    role=role,
+                last_issues = validate_outbound_email(subject, body) + validate_de_hallucinations(
+                    body, recipient_name
                 )
                 if not last_issues:
                     return {"subject": subject, "body": body}
