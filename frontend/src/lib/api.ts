@@ -228,6 +228,16 @@ export const api = {
   getProfileTemplate: (roleSlug: string) =>
     apiRequest<{ target_role: string; profile_text: string }>(`/api/profile/template/${roleSlug}`),
 
+  getAiHealth: () =>
+    apiRequest<{
+      gemini_configured: boolean;
+      openai_configured: boolean;
+      ai_provider: string;
+      gemini_ok: boolean;
+      openai_ok: boolean;
+      message: string;
+    }>('/api/ai-health'),
+
   // Mail Accounts
   getMailAccounts: () =>
     apiRequest<Array<{ id: number; email: string; is_active: boolean }>>('/api/mail-accounts'),

@@ -81,10 +81,11 @@ export default function JobsPage() {
         <Sidebar />
         
         <main className="main-content">
-          <div className="page-header flex justify-between items-center">
+          <div className="page-header">
             <div>
-              <h1 className="page-title">Job Discovery</h1>
-              <p className="page-subtitle">AI-scored jobs from LinkedIn, Indeed, and Glassdoor</p>
+              <span className="page-eyebrow">Discovery</span>
+              <h1 className="page-title">Job discovery</h1>
+              <p className="page-subtitle">AI-scored roles from LinkedIn, Indeed, and Glassdoor.</p>
             </div>
             <button 
               className="btn btn-secondary" 

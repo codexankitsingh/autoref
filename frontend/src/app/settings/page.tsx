@@ -25,11 +25,14 @@ function SettingsContent() {
   // UI
   const [toast, setToast] = useState<{ type: string; message: string } | null>(null);
   const [connectingGmail, setConnectingGmail] = useState(false);
+  const [aiHealth, setAiHealth] = useState<string | null>(null);
+  const [aiHealthOk, setAiHealthOk] = useState(true);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     loadProfile();
     loadMailAccounts();
+    loadAiHealth();
     // Handle Gmail OAuth callback
     const gmailConnected = searchParams.get('gmail_connected');
     const gmailError = searchParams.get('gmail_error');
@@ -54,6 +57,16 @@ function SettingsContent() {
       setDefaultAiModel(profile.default_ai_model || 'gemini-2.5-flash-lite');
     } catch {
       // No profile yet
+    }
+  }
+
+  async function loadAiHealth() {
+    try {
+      const h = await api.getAiHealth();
+      setAiHealth(h.message);
+      setAiHealthOk(h.gemini_ok || h.openai_ok);
+    } catch {
+      setAiHealth(null);
     }
   }
 
@@ -149,9 +162,34 @@ function SettingsContent() {
       <Sidebar />
       <main className="main-content">
         <div className="page-header animate-in">
-          <h1 className="page-title">⚙️ Settings</h1>
-          <p className="page-subtitle">Configure your profile and connected accounts</p>
+          <div>
+            <span className="page-eyebrow">Account</span>
+            <h1 className="page-title">Settings</h1>
+            <p className="page-subtitle">Profile, resume text, outreach defaults, and Gmail connection.</p>
+          </div>
         </div>
+
+        {aiHealth && (
+          <div
+            className="card animate-in"
+            style={{
+              marginBottom: '20px',
+              borderColor: aiHealthOk ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)',
+              background: aiHealthOk ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+            }}
+          >
+            <p style={{ fontSize: '14px', margin: 0, color: aiHealthOk ? 'var(--accent-success)' : 'var(--accent-danger)' }}>
+              <strong>AI engine:</strong> {aiHealth}
+              {!aiHealthOk && (
+                <>
+                  {' '}
+                  Add a new <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini key</a>
+                  {' '}or set <code>OPENAI_API_KEY</code> in backend <code>.env</code>, then restart the server.
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         <div className="grid-2 animate-in" style={{ animationDelay: '0.1s' }}>
           {/* Profile */}

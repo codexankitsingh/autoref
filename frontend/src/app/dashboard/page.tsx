@@ -155,8 +155,11 @@ export default function DashboardPage() {
       <Sidebar />
       <main className="main-content">
         <div className="page-header animate-in">
-          <h1 className="page-title">📊 Dashboard</h1>
-          <p className="page-subtitle">Track all your outreach in one place</p>
+          <div>
+            <span className="page-eyebrow">Pipeline</span>
+            <h1 className="page-title">Outreach dashboard</h1>
+            <p className="page-subtitle">Track sends, follow-ups, replies, and funnel conversion in one place.</p>
+          </div>
         </div>
 
         {/* Stats */}

@@ -19,12 +19,18 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">A</div>
-          <span className="sidebar-logo-text">AutoRef</span>
+          <div className="sidebar-logo-icon">
+            <span className="sidebar-logo-mark">A</span>
+          </div>
+          <div>
+            <span className="sidebar-logo-text">AutoRef</span>
+            <span className="sidebar-logo-tagline">AI outreach</span>
+          </div>
         </div>
       </div>
 
       <nav className="sidebar-nav">
+        <span className="sidebar-nav-label">Workspace</span>
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -32,7 +38,7 @@ export default function Sidebar() {
             className={`sidebar-link ${pathname === item.href ? 'active' : ''}`}
           >
             <span className="sidebar-link-icon">{item.icon}</span>
-            {item.label}
+            <span className="sidebar-link-text">{item.label}</span>
           </Link>
         ))}
 

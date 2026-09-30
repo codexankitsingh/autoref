@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -8,6 +9,12 @@ class Settings(BaseSettings):
 
     # Google Gemini API
     gemini_api_key: str = ""
+
+    # LLM provider: auto (Gemini, fallback OpenAI on 403), gemini, openai
+    ai_provider: str = "auto"
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
 
     # Gmail OAuth2
     google_client_id: str = ""
@@ -45,7 +52,11 @@ class Settings(BaseSettings):
     )
 
     class Config:
-        env_file = ".env"
+        env_file = (
+            ".env",
+            "backend/.env",
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+        )
         env_file_encoding = "utf-8"
 
 

@@ -8,6 +8,7 @@ from models.user import User
 from models.mail_account import MailAccount
 from dependencies import get_approved_user
 from services.profile_defaults import resolve_profile_text, list_profile_templates
+from services.llm_client import check_ai_connectivity
 
 router = APIRouter(prefix="/api", tags=["settings"])
 
@@ -18,6 +19,12 @@ router = APIRouter(prefix="/api", tags=["settings"])
 def get_profile(current_user: User = Depends(get_approved_user)):
     """Get the current user's profile."""
     return current_user
+
+
+@router.get("/ai-health")
+def get_ai_health(current_user: User = Depends(get_approved_user)):
+    """Check Gemini / OpenAI connectivity for diagnostics."""
+    return check_ai_connectivity()
 
 
 @router.get("/profile/templates")

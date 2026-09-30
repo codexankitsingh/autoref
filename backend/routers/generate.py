@@ -6,6 +6,7 @@ from database import get_db
 from schemas import GenerateEmailRequest, GenerateEmailResponse, ParsedJD
 from services.ai_service import ai_service
 from services.email_quality import validate_outbound_email
+from services.llm_client import LLMAccessDeniedError, LLMConfigurationError
 from models.user import User
 from dependencies import get_approved_user
 
@@ -51,5 +52,9 @@ def generate_email(
             subject=email_data["subject"],
             email_body=email_data["body"],
         )
+    except LLMAccessDeniedError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except LLMConfigurationError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Email generation failed: {str(e)}")

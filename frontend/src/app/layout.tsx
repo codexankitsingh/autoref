@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import AppBackground from "@/components/AppBackground";
 
 export const metadata: Metadata = {
   title: "AutoRef — AI-Powered Job Outreach",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <AppBackground />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

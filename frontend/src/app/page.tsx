@@ -212,14 +212,23 @@ export default function NewOutreachPage() {
       <Sidebar />
       <main className="main-content">
         <div className="page-header animate-in">
-          <h1 className="page-title">✨ New Outreach</h1>
-          <p className="page-subtitle">Paste a job description to generate a tailored referral email</p>
+          <div>
+            <span className="page-eyebrow">Outreach studio</span>
+            <h1 className="page-title">Craft your referral email</h1>
+            <p className="page-subtitle">
+              Paste a JD, pick your role track, and let Gemini draft a personalized note — then review and send in one flow.
+            </p>
+          </div>
+          <div className="page-header-actions">
+            <span className="pill pill-accent">{targetRole}</span>
+            <span className="pill">{aiModel.replace('gemini-', '').replace(/-/g, ' ')}</span>
+          </div>
         </div>
 
-        <div className="grid-2 animate-in" style={{ animationDelay: '0.1s' }}>
+        <div className="grid-2 animate-in stagger-2" style={{ animationDelay: '0.1s' }}>
           {/* Left Column: Input */}
           <div>
-            <div className="card" style={{ marginBottom: '20px' }}>
+            <div className="card card-lift" style={{ marginBottom: '20px' }}>
               <div className="card-header">
                 <h3 className="card-title">📋 Job Description</h3>
               </div>
@@ -236,7 +245,7 @@ export default function NewOutreachPage() {
               </div>
             </div>
 
-            <div className="card">
+            <div className="card card-lift">
               <div className="card-header">
                 <h3 className="card-title">📧 Outreach Details</h3>
               </div>
@@ -323,9 +332,11 @@ export default function NewOutreachPage() {
                   value={aiModel}
                   onChange={(e) => setAiModel(e.target.value)}
                 >
-                  <option value="gemini-2.5-flash-lite">Flash Lite (Default - 1000 Daily Quota)</option>
-                  <option value="gemini-flash-latest">Flash Stable (Fast Endpoint)</option>
-                  <option value="gemini-2.5-flash">Flash Experimental (20/day limit)</option>
+                  <option value="gemini-2.5-flash-lite">Gemini Flash Lite</option>
+                  <option value="gemini-flash-latest">Gemini Flash (latest)</option>
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  <option value="openai:gpt-4o-mini">OpenAI GPT-4o mini (uses OPENAI_API_KEY)</option>
+                  <option value="openai:gpt-4o">OpenAI GPT-4o (uses OPENAI_API_KEY)</option>
                 </select>
               </div>
 
@@ -377,7 +388,7 @@ export default function NewOutreachPage() {
               <div className="animate-in">
                 {/* Parsed JD Info */}
                 {parsedJD && (
-                  <div className="card" style={{ marginBottom: '20px' }}>
+                  <div className="card card-lift" style={{ marginBottom: '20px' }}>
                     <div className="card-header">
                       <h3 className="card-title">🔍 Parsed Info</h3>
                     </div>
@@ -400,11 +411,32 @@ export default function NewOutreachPage() {
                 )}
 
                 {/* Email Preview */}
-                <div className="card">
+                <div className="card card-lift">
                   <div className="card-header">
                     <h3 className="card-title">✉️ Email Preview</h3>
-                    <span className="badge badge-draft">Editable</span>
+                    <span className="badge badge-replied">Live preview</span>
                   </div>
+
+                  {emailBody.trim() && (
+                    <div className="email-client">
+                      <div className="email-client-chrome">
+                        <span className="email-client-dot red" />
+                        <span className="email-client-dot yellow" />
+                        <span className="email-client-dot green" />
+                      </div>
+                      <div className="email-client-meta">
+                        <strong>To:</strong> {recipientEmail || '—'}
+                        {recipientName ? ` · ${recipientName}` : ''}
+                      </div>
+                      <div className="email-client-subject">
+                        {emailSubject || '(No subject)'}
+                      </div>
+                      <div
+                        className="email-client-body"
+                        dangerouslySetInnerHTML={{ __html: emailBody }}
+                      />
+                    </div>
+                  )}
 
                   <div className="form-group">
                     <label className="form-label">Subject</label>
@@ -462,12 +494,12 @@ export default function NewOutreachPage() {
                 </div>
               </div>
             ) : (
-              <div className="card">
+              <div className="card preview-empty-glow">
                 <div className="empty-state">
                   <div className="empty-state-icon">📨</div>
-                  <div className="empty-state-title">Email Preview</div>
+                  <div className="empty-state-title">Preview waiting</div>
                   <div className="empty-state-text">
-                    Paste a job description and click &quot;Generate Email&quot; to see your AI-crafted referral email here.
+                    Generate an email to see a live inbox-style preview here — subject, HTML body, and send controls.
                   </div>
                 </div>
               </div>

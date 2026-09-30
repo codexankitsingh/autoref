@@ -4,10 +4,10 @@ Uses the new google-genai SDK with retry logic for free-tier rate limits.
 """
 import json
 import re
-import time
 from html import unescape
-from google import genai
 from config import get_settings
+from services.llm_client import LLMAccessDeniedError, LLMConfigurationError, generate_text
+from services.jd_heuristics import parse_jd_heuristic
 from services.profile_defaults import resolve_profile_text
 from services.email_quality import (
     finalize_generated_email,
@@ -158,33 +158,10 @@ class AIService:
 
     def __init__(self):
         self.settings = get_settings()
-        self._client = None
-
-    @property
-    def client(self):
-        """Lazy-load the Gemini client."""
-        if self._client is None:
-            self._client = genai.Client(api_key=self.settings.gemini_api_key)
-        return self._client
 
     def _call_gemini(self, prompt: str, model_name: str = "gemini-2.5-flash-lite", max_retries: int = 3) -> str:
-        """Make a Gemini API call with retry logic for rate limits."""
-        for attempt in range(max_retries):
-            try:
-                response = self.client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                )
-                return response.text.strip()
-            except Exception as e:
-                error_str = str(e)
-                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                    wait_time = 8 * (2 ** attempt)  # 8s, 16s, 32s
-                    print(f"Rate limited (attempt {attempt + 1}/{max_retries}). Waiting {wait_time}s...")
-                    time.sleep(wait_time)
-                else:
-                    raise
-        raise Exception("Max retries exceeded for Gemini API")
+        """Route to unified LLM client (Gemini + OpenAI fallback)."""
+        return generate_text(prompt, model_name=model_name, max_retries=max_retries)
 
     def _parse_json_response(self, text: str) -> dict:
         """Parse JSON from Gemini response, handling markdown code blocks and conversational text."""
@@ -242,9 +219,13 @@ Job Description:
                 "job_id": parsed.get("job_id"),
                 "job_link": parsed.get("job_link"),
             }
+        except (LLMAccessDeniedError, LLMConfigurationError) as e:
+            print(f"LLM unavailable for JD parse ({e}); using heuristic fallback.")
+            return parse_jd_heuristic(jd_text)
         except Exception as e:
             print(f"JD parsing error: {e}")
-            raise Exception(f"Failed to extract JD information: {e}")
+            print("Using heuristic JD parser fallback.")
+            return parse_jd_heuristic(jd_text)
 
     def _resume_links(self) -> dict[str, str]:
         s = self.settings
