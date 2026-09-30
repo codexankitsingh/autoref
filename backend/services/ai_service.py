@@ -10,11 +10,13 @@ from services.llm_client import LLMAccessDeniedError, LLMConfigurationError, gen
 from services.jd_heuristics import parse_jd_heuristic
 from services.profile_defaults import resolve_profile_text
 from services.outreach_constants import TARGET_ROLE, normalize_target_role
+from services.de_email_builder import assemble_de_email, validate_de_email_facts
 from services.email_quality import (
     finalize_generated_email,
     has_placeholder_tokens,
     normalize_jd_fields,
     recipient_greeting,
+    validate_outbound_email,
 )
 
 HUMAN_OUTREACH_VOICE = """
@@ -297,105 +299,91 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
 
         resume_link = self.settings.resume_link_data_engineering
         greeting_line = recipient_greeting(recipient_name)
-        sender_title = "Associate Data Engineer at Rakuten India"
-        bullet_guidance = (
-            '  <li><b>[Scale / distributed]:</b> [Points platform 100M+ tx/day, partitioning, dedup, late data — profile facts only.]</li>\n'
-            '  <li><b>[Multi-cloud / optimization]:</b> [Hadoop→DpaaS, GCP ELT, AWS StreamLake, or ~30% Dataproc cost cut / runtime tuning — match JD.]</li>\n'
-            '  <li><b>[Reliability / research]:</b> [If JD fits: Auto-RCA RAG agent, 364 production Airflow failures, 96% actionable RCAs, peer review — impact before "paper". Else: Kafka CDC / Iceberg streaming / LeetCode Knight — one only.]</li>'
-        )
         subject_examples = (
             f'   - "Rakuten DE — {role} at {company}"\n'
             f'   - "IIIT Gwalior \'26 | {role}, {company}"\n'
             f'   - "Airflow/Spark/BQ — {company} {role}"'
         )
-        role_emphasis = (
-            "Sender is Associate Data Engineer at Rakuten India (full-time, promoted from intern). "
-            "Differentiators to rotate in the OPENING (not all at once): multi-cloud, 100M+ tx/day distributed ownership, "
-            "real-time Kafka/CDC, resource optimization, peer-review Auto-RCA research (present impact-first), algorithmic depth (LeetCode Knight). "
-            "Avoid sounding like a template 'pipeline operator'; sound like someone who owns scale, cost, and reliability. "
-            "Do not claim petabyte-scale unless explicitly stated in the profile text. "
-            "Mention IIIT Gwalior '26 when the JD is junior/new-grad friendly."
-        )
 
-        dynamic_format = f"""
-Format to follow EXACTLY (Use HTML tags):
-<p>{greeting_line}</p>
-
-<p>I'm Ankit — {sender_title} (IIIT Gwalior '26). I'm writing about the <b>{role}</b> role at <b>{company}</b>. [One sentence: lead with your strongest JD-aligned differentiator — distributed scale, multi-cloud, real-time, optimization, or research — plus one concrete metric from the profile. Not a generic pipeline summary.]</p>
-
-<p>A few things that line up with the role:</p>
-<ul style="margin-top: 0; padding-left: 20px;">
-{bullet_guidance}
-</ul>
-
-{job_context_html}
-<p>My resume is <a href="{resume_link}">here</a>. I'd welcome a brief conversation about fit for the role — happy to align on timing for a call or whatever the next step is on your side.</p>
-
-<p>Best regards,<br>
-Ankit Kumar Singh<br>
-+91 9451184789<br>
-<a href="https://www.linkedin.com/in/ankit-kumar-singh-37450422a/" style="color: #2563eb; text-decoration: none;">LinkedIn</a> | <a href="https://github.com/codexankitsingh" style="color: #2563eb; text-decoration: none;">GitHub</a></p>
+        try:
+            last_issues: list[str] = []
+            for attempt in range(2):
+                strict_block = ""
+                if attempt == 1:
+                    strict_block = f"""
+STRICT RETRY — prior draft failed: {'; '.join(last_issues)}
+Fix every issue. Do not mention Redshift/Snowflake. Do not say Hi Ankit. Include peer review + 364 failures + 100M+ tx/day.
 """
+                prompt = f"""You draft a cold email from Ankit Kumar Singh (Associate Data Engineer, Rakuten India) to a hiring manager/recruiter at {company}.
+Write one coherent story — confident, specific, human. No buzzword salad or contradictory clouds.
 
-        prompt = f"""You are Ankit Kumar Singh drafting a cold outreach email to a hiring manager or recruiter at {company}.
-Write like a strong new-grad engineer: confident, specific, respectful — never salesy or robotic.
-Audience is usually the person who can schedule a screen or advance the candidacy — not an employee referral ask.
-
-Context:
+Job context:
+- Exact title: {role}
 - Company: {company}
-- Target Role Category: {target_role}
-- Exact Job Title: {role}
-- Key Skills Required: {skills}
+- Skills in JD: {skills}
 - Location: {location}
 
-About Me (The Sender):
+Profile (ONLY use facts from here):
 {profile_context}
-
-{dynamic_format}
-
-Data Engineering emphasis:
-{role_emphasis}
 
 {HUMAN_OUTREACH_VOICE}
 
 {RESEARCH_PRESENTATION}
 
-Rules:
-1. Preserve the EXACT HTML structure above — including the opening greeting line exactly as shown. Do NOT add extra paragraphs, greetings, or filler.
-2. The opening paragraph MUST name the exact job title "{role}" and company "{company}" (proper capitalization).
-3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, clouds, or tools (e.g. do not write Redshift/S3 pipelines if the profile says GCS/BigQuery unless mapping honestly). Match JD keywords when true.
-4. Replace bracketed placeholders with a short bold hook (2-5 words) plus one crisp sentence with a metric where possible.
-5. NEVER call me Backend Engineer or SDE Intern — I am Associate Data Engineer at Rakuten India.
-6. Subject line rules:
-   - Must feel like a human wrote it. Professional but not corporate-generic.
-   - Ideal format: "[Credential/Who I Am] — [Role] at [Company]" or "[Stack hint] — [Company] [Role]"
-   - DO NOT dump raw metrics or random JD keywords in the subject.
-   - DO NOT use clickbait, ALL CAPS, or exclamation marks.
-   - DO NOT write generic subjects like "Referral Request" or "Application for SDE Role".
-   - Keep it under 60 characters if possible.
-   Example forms:
+Narrative rules:
+1. You OWN production data systems at Rakuten — loyalty/points platform (100M+ transactions/day) plus 120-150 GB/day ELT on GCP. Never frame yourself as owning only one ingestion pipeline.
+2. GCP bullet: Airflow, PySpark/Dataproc, BigQuery, GCS, ~30% cost optimization, Kafka CDC when relevant. Do NOT put AWS Redshift/Snowflake/Databricks in the GCP bullet.
+3. AWS appears only if you mention the StreamLake side project separately — never "GCP Dataproc + AWS Redshift" in one breath.
+4. Research bullet is mandatory: Auto-RCA RAG for Airflow, 364 production failures, 96% actionable, deployed in prod, work currently under peer review (not published). Use ~25-30 min to minutes for triage — never "70% MTTR".
+5. opening_paragraph is plain text (no HTML, no greeting line — greeting is added separately as: {greeting_line!r}).
+
+Subject line rules:
 {subject_examples}
 
-Return ONLY a JSON object with exactly these keys:
+{strict_block}
+
+Return ONLY JSON with these keys (no markdown):
 {{
-  "subject": "email subject line",
-  "body": "full HTML email body"
+  "subject": "string",
+  "opening_paragraph": "plain text, 2-3 sentences",
+  "bullet_production": "HTML fragment: <b>Production at Rakuten:</b> ...",
+  "bullet_gcp_platform": "HTML fragment: <b>GCP data platform:</b> ...",
+  "bullet_research": "HTML fragment: <b>Peer-review research:</b> ... must say under peer review"
 }}
 """
-        try:
-            text = self._call_gemini(prompt, model_name=model_name)
-            result = self._parse_json_response(text)
-            subject, body = finalize_generated_email(
-                result.get("subject", f"{role} at {company} — Rakuten DE"),
-                result.get("body", ""),
-                recipient_name,
-                target_role=target_role,
-                company=company,
+                text = self._call_gemini(prompt, model_name=model_name)
+                result = self._parse_json_response(text)
+                body = assemble_de_email(
+                    greeting_line=greeting_line,
+                    opening_paragraph=result.get("opening_paragraph", ""),
+                    bullet_production=result.get("bullet_production", ""),
+                    bullet_gcp_platform=result.get("bullet_gcp_platform", ""),
+                    bullet_research=result.get("bullet_research", ""),
+                    resume_link=resume_link,
+                    job_context_html=job_context_html,
+                )
+                subject, body = finalize_generated_email(
+                    result.get("subject", f"{role} at {company} — Rakuten DE"),
+                    body,
+                    recipient_name,
+                    target_role=target_role,
+                    company=company,
+                )
+                last_issues = validate_outbound_email(subject, body) + validate_de_email_facts(
+                    body, recipient_name
+                )
+                if not last_issues:
+                    return {"subject": subject, "body": body}
+                print(f"Email attempt {attempt + 1} failed checks: {last_issues}")
+
+            raise Exception(
+                "Generated email failed quality checks: " + " ".join(last_issues)
             )
-            return {"subject": subject, "body": body}
         except (LLMAccessDeniedError, LLMConfigurationError):
             raise
         except Exception as e:
+            if str(e).startswith("Generated email failed quality checks"):
+                raise
             print(f"Email generation error: {e}")
             raise Exception(f"Failed to generate custom email body: {e}") from e
 

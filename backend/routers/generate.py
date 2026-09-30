@@ -60,4 +60,7 @@ def generate_email(
     except LLMConfigurationError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Email generation failed: {str(e)}")
+        msg = str(e)
+        if msg.startswith("Generated email failed quality checks"):
+            raise HTTPException(status_code=422, detail=msg)
+        raise HTTPException(status_code=500, detail=f"Email generation failed: {msg}")
