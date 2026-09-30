@@ -18,6 +18,7 @@ class EmailThread(Base):
     follow_up_count = Column(Integer, default=0)
     follow_up_interval_days = Column(Integer, default=3)
     max_follow_ups = Column(Integer, default=3)
+    target_role = Column(String(64), nullable=True)
     last_activity_at = Column(DateTime, server_default=func.now())
     replied = Column(Integer, default=0)  # SQLite-friendly boolean
     interview_scheduled = Column(Integer, default=0)

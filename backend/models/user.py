@@ -17,6 +17,10 @@ class User(Base):
     is_active = Column(Integer, default=1)  # SQLite-friendly boolean
     is_approved = Column(Integer, default=0)  # Admin must approve before user can use the app
     is_admin = Column(Integer, default=0)  # Admin users can approve others
+    default_target_role = Column(String(64), default="Data Engineering", nullable=False)
+    default_follow_up_interval_days = Column(Integer, default=3, nullable=False)
+    default_max_follow_ups = Column(Integer, default=3, nullable=False)
+    default_ai_model = Column(String(64), default="gemini-2.5-flash-lite", nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import GenerateEmailRequest, GenerateEmailResponse, ParsedJD
 from services.ai_service import ai_service
+from services.email_quality import validate_outbound_email
 from models.user import User
 from dependencies import get_approved_user
 
@@ -25,16 +26,25 @@ def generate_email(
         parsed = ai_service.parse_jd(request.jd_text, model_name=request.model)
         parsed_jd = ParsedJD(**parsed)
 
-        # Use current user's profile for AI context
         user_profile = current_user.profile_text or ""
 
         # Generate email
+        target_role = request.target_role or current_user.default_target_role or "Data Engineering"
+
         email_data = ai_service.generate_email(
             jd_data=parsed,
             user_profile=user_profile,
             model_name=request.model,
-            target_role=request.target_role,
+            target_role=target_role,
+            recipient_name=request.recipient_name,
         )
+
+        issues = validate_outbound_email(email_data["subject"], email_data["body"])
+        if issues:
+            raise HTTPException(
+                status_code=422,
+                detail="Generated email failed quality checks: " + " ".join(issues),
+            )
 
         return GenerateEmailResponse(
             parsed_jd=parsed_jd,

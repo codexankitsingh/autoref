@@ -14,6 +14,7 @@ class JobApplication(Base):
     jd_text = Column(Text, nullable=False)
     skills = Column(Text, nullable=True)  # JSON string of extracted skills
     location = Column(String(255), nullable=True)
+    target_role = Column(String(64), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     # Relationships

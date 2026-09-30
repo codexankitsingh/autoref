@@ -209,13 +209,6 @@ class SchedulerService:
         if original_msg.sent_at:
             original_date_str = original_msg.sent_at.strftime("%B %d, %Y")  # e.g. "May 14, 2026"
 
-        follow_up_body = ai_service.generate_follow_up(
-            original_email=original_msg.content,
-            follow_up_number=job.follow_up_number,
-            original_sent_date=original_date_str,
-            open_count=original_msg.open_count or 0,
-        )
-
         # Send the follow-up
         try:
             from models.recipient import Recipient
@@ -224,6 +217,18 @@ class SchedulerService:
                 job.status = "cancelled"
                 db.commit()
                 return
+
+            application = thread.application
+            follow_up_body = ai_service.generate_follow_up(
+                original_email=original_msg.content,
+                follow_up_number=job.follow_up_number,
+                original_sent_date=original_date_str,
+                open_count=original_msg.open_count or 0,
+                original_subject=original_msg.subject or "",
+                recipient_name=recipient.name or "",
+                company=(recipient.company or (application.company if application else "") or ""),
+                role=(application.role if application else "") or "",
+            )
 
             # Generate Tracking ID for follow-up (Phase 2)
             tracking_id = str(uuid.uuid4())

@@ -11,6 +11,10 @@ function SettingsContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [profileText, setProfileText] = useState('');
+  const [defaultTargetRole, setDefaultTargetRole] = useState('Data Engineering');
+  const [defaultFollowUpDays, setDefaultFollowUpDays] = useState(3);
+  const [defaultMaxFollowUps, setDefaultMaxFollowUps] = useState(3);
+  const [defaultAiModel, setDefaultAiModel] = useState('gemini-2.5-flash-lite');
   const [profileSaving, setProfileSaving] = useState(false);
 
   // Mail accounts
@@ -44,6 +48,10 @@ function SettingsContent() {
       setName(profile.name);
       setEmail(profile.email);
       setProfileText(profile.profile_text || '');
+      setDefaultTargetRole(profile.default_target_role || 'Data Engineering');
+      setDefaultFollowUpDays(profile.default_follow_up_interval_days ?? 3);
+      setDefaultMaxFollowUps(profile.default_max_follow_ups ?? 3);
+      setDefaultAiModel(profile.default_ai_model || 'gemini-2.5-flash-lite');
     } catch {
       // No profile yet
     }
@@ -55,6 +63,19 @@ function SettingsContent() {
       setMailAccounts(accounts);
     } catch {
       // No accounts
+    }
+  }
+
+  async function handleLoadDataEngineeringTemplate() {
+    try {
+      const { profile_text } = await api.getProfileTemplate('data-engineering');
+      setProfileText(profile_text);
+      if (!name.trim()) setName('Ankit Kumar Singh');
+      if (!email.trim()) setEmail('ankitkumarsingh171819@gmail.com');
+      showToast('success', 'Loaded Data Engineering resume template — click Save Profile');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load template';
+      showToast('error', message);
     }
   }
 
@@ -70,6 +91,10 @@ function SettingsContent() {
         name,
         email,
         profile_text: profileText || undefined,
+        default_target_role: defaultTargetRole,
+        default_follow_up_interval_days: defaultFollowUpDays,
+        default_max_follow_ups: defaultMaxFollowUps,
+        default_ai_model: defaultAiModel,
       });
       showToast('success', 'Profile saved!');
     } catch (err: unknown) {
@@ -163,7 +188,71 @@ function SettingsContent() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Profile / Resume Text</label>
+              <label className="form-label">Default outreach settings</label>
+              <div className="grid-2" style={{ gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px' }}>Target role</label>
+                  <select
+                    className="form-select"
+                    value={defaultTargetRole}
+                    onChange={(e) => setDefaultTargetRole(e.target.value)}
+                  >
+                    <option value="Data Engineering">Data Engineering</option>
+                    <option value="Backend/SDE">Product Backend</option>
+                    <option value="Systems">Systems / Core Engineering</option>
+                    <option value="Fintech">Fintech / Payments</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px' }}>AI model</label>
+                  <select
+                    className="form-select"
+                    value={defaultAiModel}
+                    onChange={(e) => setDefaultAiModel(e.target.value)}
+                  >
+                    <option value="gemini-2.5-flash-lite">Flash Lite</option>
+                    <option value="gemini-flash-latest">Flash Stable</option>
+                    <option value="gemini-2.5-flash">Flash Experimental</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px' }}>Follow-up interval (days)</label>
+                  <select
+                    className="form-select"
+                    value={defaultFollowUpDays}
+                    onChange={(e) => setDefaultFollowUpDays(Number(e.target.value))}
+                  >
+                    {[2, 3, 4, 5, 7].map((d) => (
+                      <option key={d} value={d}>{d} days</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px' }}>Max follow-ups</label>
+                  <select
+                    className="form-select"
+                    value={defaultMaxFollowUps}
+                    onChange={(e) => setDefaultMaxFollowUps(Number(e.target.value))}
+                  >
+                    {[1, 2, 3].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="flex gap-12" style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Profile / Resume Text</label>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleLoadDataEngineeringTemplate}
+                >
+                  Load DE resume template
+                </button>
+              </div>
               <textarea
                 className="form-textarea"
                 id="profile-text"

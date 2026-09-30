@@ -7,6 +7,7 @@ from schemas import UserProfileRequest, UserProfileResponse, MailAccountResponse
 from models.user import User
 from models.mail_account import MailAccount
 from dependencies import get_approved_user
+from services.profile_defaults import resolve_profile_text, list_profile_templates
 
 router = APIRouter(prefix="/api", tags=["settings"])
 
@@ -19,6 +20,30 @@ def get_profile(current_user: User = Depends(get_approved_user)):
     return current_user
 
 
+@router.get("/profile/templates")
+def get_profile_templates(current_user: User = Depends(get_approved_user)):
+    """List roles that have a built-in resume template on the server."""
+    return {"templates": list(list_profile_templates().keys())}
+
+
+@router.get("/profile/template/{role_slug}")
+def get_profile_template(role_slug: str, current_user: User = Depends(get_approved_user)):
+    """
+    Fetch default profile text for a role. role_slug examples: data-engineering
+    """
+    slug_to_role = {
+        "data-engineering": "Data Engineering",
+    }
+    target_role = slug_to_role.get(role_slug.replace("_", "-").lower())
+    if not target_role:
+        raise HTTPException(status_code=404, detail="Unknown profile template")
+
+    text = resolve_profile_text(None, target_role)
+    if not text:
+        raise HTTPException(status_code=404, detail="Template file missing on server")
+    return {"target_role": target_role, "profile_text": text}
+
+
 @router.post("/profile", response_model=UserProfileResponse)
 def create_or_update_profile(
     request: UserProfileRequest,
@@ -29,6 +54,14 @@ def create_or_update_profile(
     current_user.name = request.name
     current_user.email = request.email
     current_user.profile_text = request.profile_text
+    if request.default_target_role is not None:
+        current_user.default_target_role = request.default_target_role
+    if request.default_follow_up_interval_days is not None:
+        current_user.default_follow_up_interval_days = request.default_follow_up_interval_days
+    if request.default_max_follow_ups is not None:
+        current_user.default_max_follow_ups = request.default_max_follow_ups
+    if request.default_ai_model is not None:
+        current_user.default_ai_model = request.default_ai_model
     db.commit()
     db.refresh(current_user)
     return current_user

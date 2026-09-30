@@ -21,7 +21,7 @@ export default function NewOutreachPage() {
   const [followUpDays, setFollowUpDays] = useState(3);
   const [maxFollowUps, setMaxFollowUps] = useState(3);
   const [aiModel, setAiModel] = useState('gemini-2.5-flash-lite');
-  const [targetRole, setTargetRole] = useState('Backend/SDE');
+  const [targetRole, setTargetRole] = useState('Data Engineering');
 
   // Generated email state
   const [parsedJD, setParsedJD] = useState<ParsedJD | null>(null);
@@ -39,7 +39,10 @@ export default function NewOutreachPage() {
 
   useEffect(() => {
     loadMailAccounts();
-    // Hydrate form draft from localStorage
+    let draftTargetRole: string | undefined;
+    let draftAiModel: string | undefined;
+    let draftFollowUpDays: number | undefined;
+    let draftMaxFollowUps: number | undefined;
     try {
       const draft = localStorage.getItem('outreachDraft');
       if (draft) {
@@ -53,10 +56,20 @@ export default function NewOutreachPage() {
         if (parsed.emailSubject) setEmailSubject(parsed.emailSubject);
         if (parsed.emailBody) setEmailBody(parsed.emailBody);
         if (parsed.showPreview !== undefined) setShowPreview(parsed.showPreview);
+        draftTargetRole = parsed.targetRole;
+        draftAiModel = parsed.aiModel;
+        draftFollowUpDays = parsed.followUpDays;
+        draftMaxFollowUps = parsed.maxFollowUps;
       }
     } catch {
       // Ignored
     }
+    loadUserDefaults({
+      targetRole: draftTargetRole,
+      aiModel: draftAiModel,
+      followUpDays: draftFollowUpDays,
+      maxFollowUps: draftMaxFollowUps,
+    });
   }, []);
 
   const isInitialMount = useRef(true);
@@ -70,6 +83,27 @@ export default function NewOutreachPage() {
     };
     localStorage.setItem('outreachDraft', JSON.stringify(draft));
   }, [jdText, recipientEmail, recipientName, aiModel, targetRole, parsedJD, emailSubject, emailBody, showPreview]);
+
+  async function loadUserDefaults(draft?: {
+    targetRole?: string;
+    aiModel?: string;
+    followUpDays?: number;
+    maxFollowUps?: number;
+  }) {
+    try {
+      const profile = await api.getProfile();
+      if (!draft?.targetRole && profile.default_target_role) setTargetRole(profile.default_target_role);
+      if (!draft?.aiModel && profile.default_ai_model) setAiModel(profile.default_ai_model);
+      if (!draft?.followUpDays && profile.default_follow_up_interval_days) {
+        setFollowUpDays(profile.default_follow_up_interval_days);
+      }
+      if (!draft?.maxFollowUps && profile.default_max_follow_ups) {
+        setMaxFollowUps(profile.default_max_follow_ups);
+      }
+    } catch {
+      // Profile not loaded yet
+    }
+  }
 
   async function loadMailAccounts() {
     try {
@@ -120,18 +154,11 @@ export default function NewOutreachPage() {
       return;
     }
 
-    // Inject recipient name into the greeting before sending
-    const firstName = recipientName.trim().split(' ')[0] || 'there';
-    const personalizedBody = emailBody.replace(
-      /Hi Name,/i,
-      `Hi ${firstName},`
-    );
-
     setSending(true);
     try {
       await api.sendEmail({
         email_subject: emailSubject,
-        email_body: personalizedBody,
+        email_body: emailBody,
         recipient_email: recipientEmail,
         recipient_name: recipientName || undefined,
         sender_account_id: senderAccountId,
@@ -142,6 +169,7 @@ export default function NewOutreachPage() {
         jd_text: jdText,
         skills: parsedJD?.skills?.join(', ') || undefined,
         location: parsedJD?.location || undefined,
+        target_role: targetRole,
       });
 
       showToast('success', `✅ Sent to ${recipientEmail}! Add next recipient to send again.`);

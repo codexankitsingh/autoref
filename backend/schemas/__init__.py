@@ -46,7 +46,7 @@ class GenerateEmailRequest(BaseModel):
     recipient_email: str
     recipient_name: Optional[str] = None
     model: str = "gemini-2.5-flash-lite"
-    target_role: str = "Backend/SDE"
+    target_role: str = "Data Engineering"
 
 class ParsedJD(BaseModel):
     company: Optional[str] = None
@@ -80,6 +80,7 @@ class SendEmailRequest(BaseModel):
     location: Optional[str] = None
     job_id: Optional[str] = None
     job_link: Optional[str] = None
+    target_role: Optional[str] = "Data Engineering"
 
 class SendEmailResponse(BaseModel):
     thread_id: int
@@ -148,12 +149,20 @@ class UserProfileRequest(BaseModel):
     name: str
     email: str
     profile_text: Optional[str] = None
+    default_target_role: Optional[str] = None
+    default_follow_up_interval_days: Optional[int] = None
+    default_max_follow_ups: Optional[int] = None
+    default_ai_model: Optional[str] = None
 
 class UserProfileResponse(BaseModel):
     id: int
     name: str
     email: str
     profile_text: Optional[str]
+    default_target_role: str = "Data Engineering"
+    default_follow_up_interval_days: int = 3
+    default_max_follow_ups: int = 3
+    default_ai_model: str = "gemini-2.5-flash-lite"
 
     class Config:
         from_attributes = True

@@ -1,0 +1,36 @@
+Ankit Kumar Singh — Data Engineer | ELT Pipelines | Distributed Processing | Cloud-Native Data Systems
+Contact: +91 9451184789 | ankitkumarsingh171819@gmail.com | LinkedIn | GitHub (codexankitsingh) | LeetCode Knight (1950+, top 3%) | Codeforces Specialist (1431+)
+
+Summary:
+Associate Data Engineer at Rakuten India who ships and owns production data systems end to end: 100M+ daily transactions on the loyalty Points Transaction Platform and 120–150 GB/day ingestion on GCP (Spark, Kafka, BigQuery). Migrates legacy pipelines, debugs production failures, and builds tooling — including an LLM Auto-RCA agent that turns Airflow DAG failures into Slack-ready reports in ~21s, cutting on-call triage from 25–30 min to minutes.
+
+Work Experience — Rakuten India, Bengaluru:
+Associate Data Engineer (07/2026 – Present):
+- Own Rakuten Points Transaction Platform pipelines (100M+ daily transactions); optimized Spark shuffle and partition pruning; handle schema evolution, late data, partitioning, and deduplication in production.
+- Migrated Rakuten Travel from Hadoop to DpaaS OneCloud: shipped 14 production assets on Spark, Iceberg, BigQuery, and GCS; INT→DAL pipelines with automated DQ, dependency checks, and metrics export; refactored Spark ETLs for DpaaS (Hive Metastore catalog).
+- Led SPDB Airflow 3.2 STG migration validation across 10 load types (Kafka, bulk, JDBC, NFS, Mongo, hist SCD2); migrated PROD configs, fixed connectors/paths, deployed via GitHub Actions; unblocked successful STG cutover.
+- Partner with DevOps/SRE, BI/analytics, ingestion (Kafka CDC, JDBC bulk), and on-call via Slack Re-Trigger/Skip polls grounded in Confluence ORB runbooks.
+
+Data Engineer Intern (01/2026 – 06/2026), promoted to Associate:
+- Built and deployed (Google Cloud Run) LLM Auto-RCA agent (FastAPI, LangGraph, Rakuten LLM + FAISS RAG) for production Airflow DAGs; Slack-thread RCA + PDF; ~21s median latency; MTTR from 25–30 min to seconds on rerun-eligible failures.
+- Orchestrated Airflow ELT: GCS → PySpark (ephemeral Dataproc) → BigQuery; 120–150 GB/day; SCD Type 2, incremental loads, idempotent upserts over 10M+ records.
+- Cut cloud costs ~30% via Dataproc right-sizing and PySpark tuning (partition pruning, broadcast joins); built Kafka CDC ingestion decoupling sources from downstream ELT.
+
+Technical Skills:
+Data Engineering: Apache Airflow, Apache Spark (PySpark, Spark SQL), Kafka, Kafka Connect, Debezium (CDC), dbt, SCD Type 1/2, star schema, schema evolution, incremental/bulk loads, ELT/ETL.
+Languages: Python, SQL (PostgreSQL, MySQL), Java, C++.
+Cloud: GCP (BigQuery, Dataproc, GCS, Cloud Monitoring), AWS (S3, EC2), Docker, Git, CI/CD, Linux.
+Databases & Storage: Cassandra, BigQuery, PostgreSQL, MySQL, MongoDB, Redis, Oracle DB, Apache Iceberg.
+
+Projects:
+SaleStream — E-Commerce Analytics ELT (Airflow, PySpark, BigQuery, dbt, Docker): Dockerized Airflow 76+ tasks; 10M+ records from 8 e-commerce datasets to GCS with schema validation; star schema + SCD2 via PySpark; Parquet + BQ partitioning; dbt incremental models with contract tests and MERGE upserts; 8 Looker Studio dashboards.
+
+StreamLake — Real-Time CDC Lakehouse (Debezium, Kafka, Spark Structured Streaming, Iceberg, AWS, Trino): PostgreSQL CDC → Kafka (Avro + Schema Registry) → Iceberg via Spark streaming MERGE; watermark late arrivals, exactly-once; Iceberg time-travel; Trino for ad-hoc analytics.
+
+Achievements:
+LeetCode Knight 1950+; Codeforces Specialist 1431+; 1000+ problems solved.
+Research: Auto-RCA RAG agent for Airflow failures (under peer review); 364 live production failures, 96% expert actionable rate.
+Flipkart GRiD 7.0 national semifinalist; Amazon MLSS top 0.1% of 75,000.
+
+Education:
+IIIT Gwalior — Integrated M.Tech in IT (07/2021 – 05/2026). Coursework: DSA, DBMS, OS, CN, OOP, Cloud Computing, Distributed Systems, Big Data.

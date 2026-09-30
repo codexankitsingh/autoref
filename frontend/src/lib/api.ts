@@ -135,6 +135,7 @@ export const api = {
     jd_text?: string;
     skills?: string;
     location?: string;
+    target_role?: string;
   }) =>
     apiRequest<{ thread_id: number; gmail_thread_id: string | null; status: string; message: string }>(
       '/api/send-email',
@@ -202,10 +203,30 @@ export const api = {
 
   // Profile
   getProfile: () =>
-    apiRequest<{ id: number; name: string; email: string; profile_text: string | null }>('/api/profile'),
+    apiRequest<{
+      id: number;
+      name: string;
+      email: string;
+      profile_text: string | null;
+      default_target_role: string;
+      default_follow_up_interval_days: number;
+      default_max_follow_ups: number;
+      default_ai_model: string;
+    }>('/api/profile'),
 
-  saveProfile: (data: { name: string; email: string; profile_text?: string }) =>
+  saveProfile: (data: {
+    name: string;
+    email: string;
+    profile_text?: string;
+    default_target_role?: string;
+    default_follow_up_interval_days?: number;
+    default_max_follow_ups?: number;
+    default_ai_model?: string;
+  }) =>
     apiRequest('/api/profile', { method: 'POST', body: data }),
+
+  getProfileTemplate: (roleSlug: string) =>
+    apiRequest<{ target_role: string; profile_text: string }>(`/api/profile/template/${roleSlug}`),
 
   // Mail Accounts
   getMailAccounts: () =>

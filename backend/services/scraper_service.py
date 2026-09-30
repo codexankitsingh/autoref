@@ -11,12 +11,14 @@ from database import SessionLocal
 from models.scraped_job import ScrapedJob
 from models.user import User
 from services.scoring_service import scoring_service
+from services.profile_defaults import resolve_profile_text
 
 # Regex patterns that indicate a role is too senior (SDE-2/3, Senior, Staff, etc.)
 # These are filtered BEFORE burning Gemini API credits on scoring.
 SENIOR_TITLE_PATTERNS = re.compile(
     r'\b('
     r'sde[\s\-]?[2-9]|sde[\s\-]?ii|sde[\s\-]?iii|'
+    r'data[\s\-]?engineer[\s\-]?(?:ii|iii|2|3|4|5)|'
     r'senior|sr\.?\s|staff|principal|lead|'
     r'manager|director|architect|head\sof|vp\s|'
     r'[5-9]\+?\s*(?:years?|yrs?)|'
@@ -109,7 +111,8 @@ class ScraperService:
             print(f"[{datetime.now()}] Daily job scrape complete.")
 
     def _process_and_score_jobs(self, jobs_df: pd.DataFrame, user: User, db: Session, threshold: int):
-        user_profile = user.profile_text or ""
+        scoring_role = getattr(user, "default_target_role", None) or "Data Engineering"
+        user_profile = resolve_profile_text(user.profile_text, scoring_role)
         new_jobs = 0
         scored_jobs = 0
 

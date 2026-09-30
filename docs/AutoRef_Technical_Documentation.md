@@ -255,7 +255,7 @@ Resume Link (role-specific) ──────────────┘
 |------|-------------------|---------------|-------------|
 | Backend/SDE | API Design, Performance, DSA | "800+ TPS API at p99 <50ms" | SDE resume |
 | Fintech | Payment Systems, Security, Reliability | "ACID Transactions & Idempotent APIs" | Fintech resume |
-| Data Engineering | Pipeline Architecture, Spark, Data Modeling | "150 GB/day ingestion pipeline" | DE resume |
+| Data Engineering | Production scale, ELT/migration, streaming/lakehouse | "Rakuten Associate DE \| Referral for …" | DE resume |
 
 Each role gets a tailored `role_configs` dict with:
 - `bullet_guidance`: Specific achievement categories to extract from the user's profile

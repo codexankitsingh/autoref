@@ -14,6 +14,8 @@ from models.email_thread import EmailThread
 from models.message import Message
 from services.email_service import email_service
 from services.scheduler_service import scheduler_service
+from services.email_quality import finalize_generated_email, validate_outbound_email
+from sqlalchemy import or_
 from config import get_settings
 from dependencies import get_approved_user
 
@@ -28,6 +30,20 @@ def send_email(
 ):
     """Send an email and create tracking records, scoped to current user."""
     try:
+        subject, body = finalize_generated_email(
+            request.email_subject,
+            request.email_body,
+            request.recipient_name,
+        )
+        issues = validate_outbound_email(subject, body)
+        if issues:
+            raise HTTPException(
+                status_code=422,
+                detail="Cannot send — fix these issues first: " + " ".join(issues),
+            )
+
+        target_role = request.target_role or current_user.default_target_role or "Data Engineering"
+
         # 1. Create JobApplication (scoped to user)
         application = JobApplication(
             user_id=current_user.id,
@@ -36,19 +52,35 @@ def send_email(
             jd_text=request.jd_text or "",
             skills=request.skills,
             location=request.location,
+            target_role=target_role,
         )
         db.add(application)
         db.flush()
 
-        # 2. Create or find Recipient
-        recipient = db.query(Recipient).filter(Recipient.email == request.recipient_email).first()
+        # 2. Create or find Recipient (scoped to user)
+        recipient = (
+            db.query(Recipient)
+            .filter(
+                Recipient.email == request.recipient_email,
+                or_(Recipient.user_id == current_user.id, Recipient.user_id.is_(None)),
+            )
+            .first()
+        )
         if not recipient:
             recipient = Recipient(
+                user_id=current_user.id,
                 email=request.recipient_email,
                 name=request.recipient_name,
                 company=request.company,
             )
             db.add(recipient)
+            db.flush()
+        else:
+            recipient.user_id = current_user.id
+            if request.recipient_name:
+                recipient.name = request.recipient_name
+            if request.company:
+                recipient.company = request.company
             db.flush()
 
         # 3. Generate Tracking ID (Phase 2)
@@ -59,8 +91,8 @@ def send_email(
             db=db,
             sender_account_id=request.sender_account_id,
             recipient_email=request.recipient_email,
-            subject=request.email_subject,
-            body=request.email_body,
+            subject=subject,
+            body=body,
             tracking_id=tracking_id,
         )
 
@@ -74,6 +106,7 @@ def send_email(
             status="sent",
             follow_up_interval_days=request.follow_up_interval_days,
             max_follow_ups=request.max_follow_ups,
+            target_role=target_role,
             last_activity_at=datetime.utcnow(),
         )
         db.add(thread)
@@ -84,8 +117,8 @@ def send_email(
             thread_id=thread.id,
             gmail_message_id=send_result.get("gmail_message_id"),
             message_type="initial",
-            subject=request.email_subject,
-            content=request.email_body,
+            subject=subject,
+            content=body,
             sent_at=datetime.utcnow(),
             tracking_id=tracking_id,
         )
