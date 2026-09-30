@@ -2,7 +2,7 @@ Ankit Kumar Singh — Data Engineer | ELT Pipelines | Distributed Processing | C
 Contact: +91 9451184789 | ankitkumarsingh171819@gmail.com | LinkedIn | GitHub (codexankitsingh) | LeetCode Knight (1950+, top 3%) | Codeforces Specialist (1431+)
 
 Summary:
-Associate Data Engineer at Rakuten India who ships and owns production data systems end to end: 100M+ daily transactions on the loyalty Points Transaction Platform and 120–150 GB/day ingestion on GCP (Spark, Kafka, BigQuery). Migrates legacy pipelines, debugs production failures, and builds tooling — including an LLM Auto-RCA agent that turns Airflow DAG failures into Slack-ready reports in ~21s, cutting on-call triage from 25–30 min to minutes.
+Associate Data Engineer at Rakuten India — production owner for distributed batch + streaming data systems. Multi-cloud hands-on: GCP (BigQuery, Dataproc, GCS, Airflow) and AWS (S3, EC2) via migration and StreamLake-style CDC work. Scale: 100M+ daily transactions on the loyalty Points platform; 120–150 GB/day orchestrated ELT; Spark/Kafka pipelines with idempotent upserts, SCD2, and schema evolution. Strengths: resource optimization (~30% cloud cost cut via Dataproc/PySpark tuning), real-time ingestion (Kafka/Debezium CDC), and reliability tooling (LLM Auto-RCA agent, peer-review research on 364 production Airflow failures, 96% expert actionable rate). LeetCode Knight (1950+, top 3%) — strong algorithms for data structures, joins, and performance debugging at scale.
 
 Work Experience — Rakuten India, Bengaluru:
 Associate Data Engineer (07/2026 – Present):
@@ -29,7 +29,7 @@ StreamLake — Real-Time CDC Lakehouse (Debezium, Kafka, Spark Structured Stream
 
 Achievements:
 LeetCode Knight 1950+; Codeforces Specialist 1431+; 1000+ problems solved.
-Research: Auto-RCA RAG agent for Airflow failures (under peer review); 364 live production failures, 96% expert actionable rate.
+Research (peer review): LLM + RAG Auto-RCA for production Airflow DAG failures — studied on 364 live Rakuten production incidents; 96% of RCA outputs rated actionable by senior engineers; deployed agent ~21s median latency, MTTR cut from 25–30 min to minutes on rerunnable failures. Position as practical platform/reliability engineering, not academic fluff.
 Flipkart GRiD 7.0 national semifinalist; Amazon MLSS top 0.1% of 75,000.
 
 Education:

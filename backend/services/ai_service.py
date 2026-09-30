@@ -22,12 +22,22 @@ Voice (critical — must sound like a sharp engineer wrote this in 8 minutes, no
 - Short sentences. One clear idea per sentence. No filler adjectives ("incredibly", "passionate", "excited").
 - NEVER use: "Quick context on why I'd be a strong fit", "I'm reaching out regarding", "directly aligns with your focus on",
   "I would be incredibly grateful", "hop on a brief call", "Looking forward to hearing from you!"
-- Open with who you are + the exact job title at the company + ONE concrete overlap (stack, scale, or domain from the JD).
+- Opening paragraph: who you are + exact role at company + ONE sharp differentiator (pick the best JD fit): loyalty-scale distributed systems (100M+ tx/day), multi-cloud (GCP+AWS), real-time Kafka/CDC, cost/runtime optimization (~30%), peer-review research/Auto-RCA, or strong CS/algorithms (LeetCode Knight) — NOT a generic "I built an Airflow pipeline that ingests X GB".
+- Do NOT open with only batch ELT volume; save pipeline mechanics for bullets.
+- Use cloud/stack names from the profile (GCP, BigQuery, Dataproc, GCS, Kafka). Never invent S3/Redshift/Snowflake unless they appear in the JD AND you honestly map from equivalent GCP/AWS experience in the profile.
 - Bullets: start with a 2–5 word bold hook (e.g. <b>Rakuten scale:</b>, <b>Airflow ELT:</b>) — NOT long template category names.
 - Close for a hiring manager or recruiter: resume link + interest in a brief conversation or clear next step (screening call, application link). Do NOT ask for a "referral" or "intro to the hiring manager" — they ARE the hiring side.
 - Use straight ASCII hyphens (-), not special dash characters.
 - Copy the job title EXACTLY from "Exact Job Title" below (including location suffixes like "- India"). Never truncate.
 - Company name must use proper capitalization (e.g. Philips, not philips).
+"""
+
+RESEARCH_PRESENTATION = """
+Peer-review research (use when JD touches reliability, observability, on-call, ML on data platforms, or Airflow ops):
+- Frame as production impact first, publication second — e.g. "I built and studied an LLM RCA system on 364 live Airflow failures (96% actionable per senior engineers); that work is under peer review."
+- Good one-liner for opening OR bullet: "Alongside pipeline ownership, I shipped an Auto-RCA agent (peer-review research) that pulls Airflow on-call triage from ~25–30 minutes down to minutes on eligible reruns."
+- Avoid: "industry grade paper", "published paper" (not published yet), long methodology, or listing co-authors in a cold email.
+- Prefer one crisp clause in the opening when reliability/ML is in the JD; otherwise put the full research bullet in slot 3 with the 364 / 96% metrics.
 """
 
 _DEFAULT_SIGNOFF_HTML = (
@@ -289,9 +299,9 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
         greeting_line = recipient_greeting(recipient_name)
         sender_title = "Associate Data Engineer at Rakuten India"
         bullet_guidance = (
-            '  <li><b>[Short hook, e.g. Rakuten scale / Loyalty pipelines]:</b> [One production win: Points platform 100M+ tx/day, 120-150 GB/day ingestion, idempotent upserts, SCD2, schema evolution — only facts from profile.]</li>\n'
-            '  <li><b>[Short hook, e.g. Airflow ELT / Cloud migration]:</b> [One win on Airflow-orchestrated GCS→PySpark→BigQuery, DpaaS migration, or ~30-40% runtime/cost improvements — match JD stack words.]</li>\n'
-            '  <li><b>[Short hook, e.g. Kafka CDC / Reliability]:</b> [One win: Kafka/Debezium, Iceberg streaming, dbt lakehouse project, or Auto-RCA cutting on-call triage from 25-30 min — pick what the JD cares about most.]</li>'
+            '  <li><b>[Scale / distributed]:</b> [Points platform 100M+ tx/day, partitioning, dedup, late data — profile facts only.]</li>\n'
+            '  <li><b>[Multi-cloud / optimization]:</b> [Hadoop→DpaaS, GCP ELT, AWS StreamLake, or ~30% Dataproc cost cut / runtime tuning — match JD.]</li>\n'
+            '  <li><b>[Reliability / research]:</b> [If JD fits: Auto-RCA RAG agent, 364 production Airflow failures, 96% actionable RCAs, peer review — impact before "paper". Else: Kafka CDC / Iceberg streaming / LeetCode Knight — one only.]</li>'
         )
         subject_examples = (
             f'   - "Rakuten DE — {role} at {company}"\n'
@@ -300,9 +310,10 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
         )
         role_emphasis = (
             "Sender is Associate Data Engineer at Rakuten India (full-time, promoted from intern). "
-            "Lead with production ownership, batch + streaming ELT, and GCP (BigQuery, Dataproc, GCS). "
-            "Highlight migration/modernization (Hadoop→DpaaS, Iceberg), Airflow operations, Kafka CDC when relevant, "
-            "and reliability (DQ, idempotent upserts, SCD2, on-call/Auto-RCA). "
+            "Differentiators to rotate in the OPENING (not all at once): multi-cloud, 100M+ tx/day distributed ownership, "
+            "real-time Kafka/CDC, resource optimization, peer-review Auto-RCA research (present impact-first), algorithmic depth (LeetCode Knight). "
+            "Avoid sounding like a template 'pipeline operator'; sound like someone who owns scale, cost, and reliability. "
+            "Do not claim petabyte-scale unless explicitly stated in the profile text. "
             "Mention IIIT Gwalior '26 when the JD is junior/new-grad friendly."
         )
 
@@ -310,7 +321,7 @@ About the sender: Profile not configured. Use only generic Data Engineering fram
 Format to follow EXACTLY (Use HTML tags):
 <p>{greeting_line}</p>
 
-<p>I'm Ankit — {sender_title} (IIIT Gwalior '26). I'm writing about the <b>{role}</b> role at <b>{company}</b>. [One sentence: tie a specific JD requirement to a specific production or project outcome from my profile — no buzzwords.]</p>
+<p>I'm Ankit — {sender_title} (IIIT Gwalior '26). I'm writing about the <b>{role}</b> role at <b>{company}</b>. [One sentence: lead with your strongest JD-aligned differentiator — distributed scale, multi-cloud, real-time, optimization, or research — plus one concrete metric from the profile. Not a generic pipeline summary.]</p>
 
 <p>A few things that line up with the role:</p>
 <ul style="margin-top: 0; padding-left: 20px;">
@@ -347,10 +358,12 @@ Data Engineering emphasis:
 
 {HUMAN_OUTREACH_VOICE}
 
+{RESEARCH_PRESENTATION}
+
 Rules:
 1. Preserve the EXACT HTML structure above — including the opening greeting line exactly as shown. Do NOT add extra paragraphs, greetings, or filler.
 2. The opening paragraph MUST name the exact job title "{role}" and company "{company}" (proper capitalization).
-3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, or experiences I do not have! Match JD keywords (Airflow, Spark, Kafka, BigQuery, etc.) when true.
+3. The 3 bullet points MUST be factually extracted from my profile text. DO NOT hallucinate projects, metrics, clouds, or tools (e.g. do not write Redshift/S3 pipelines if the profile says GCS/BigQuery unless mapping honestly). Match JD keywords when true.
 4. Replace bracketed placeholders with a short bold hook (2-5 words) plus one crisp sentence with a metric where possible.
 5. NEVER call me Backend Engineer or SDE Intern — I am Associate Data Engineer at Rakuten India.
 6. Subject line rules:
