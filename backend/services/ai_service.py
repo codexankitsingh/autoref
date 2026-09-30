@@ -413,9 +413,11 @@ Return ONLY a JSON object with exactly these keys:
                 recipient_name,
             )
             return {"subject": subject, "body": body}
+        except (LLMAccessDeniedError, LLMConfigurationError):
+            raise
         except Exception as e:
             print(f"Email generation error: {e}")
-            raise Exception(f"Failed to generate custom email body: {e}")
+            raise Exception(f"Failed to generate custom email body: {e}") from e
 
     def generate_follow_up(
         self,

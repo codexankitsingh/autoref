@@ -27,6 +27,9 @@ function SettingsContent() {
   const [connectingGmail, setConnectingGmail] = useState(false);
   const [aiHealth, setAiHealth] = useState<string | null>(null);
   const [aiHealthOk, setAiHealthOk] = useState(true);
+  const [aiDiagnosis, setAiDiagnosis] = useState<string | null>(null);
+  const [aiSteps, setAiSteps] = useState<string[]>([]);
+  const [aiKeyKind, setAiKeyKind] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -65,6 +68,9 @@ function SettingsContent() {
       const h = await api.getAiHealth();
       setAiHealth(h.message);
       setAiHealthOk(h.gemini_ok || h.openai_ok);
+      setAiDiagnosis(h.diagnosis || null);
+      setAiSteps(h.remediation_steps || []);
+      setAiKeyKind(h.gemini_key_kind || null);
     } catch {
       setAiHealth(null);
     }
@@ -180,13 +186,20 @@ function SettingsContent() {
           >
             <p style={{ fontSize: '14px', margin: 0, color: aiHealthOk ? 'var(--accent-success)' : 'var(--accent-danger)' }}>
               <strong>AI engine:</strong> {aiHealth}
-              {!aiHealthOk && (
-                <>
-                  {' '}
-                  AQ. keys from AI Studio are valid. If you see 403 project denied, create a{' '}
-                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">new project/key</a>
-                  {' '}or set <code>OPENAI_API_KEY</code> on Render/local env and restart.
-                </>
+              {aiKeyKind && (
+                <span style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  Key type detected: {aiKeyKind}
+                </span>
+              )}
+              {aiDiagnosis && (
+                <span style={{ display: 'block', marginTop: '8px', fontSize: '13px' }}>{aiDiagnosis}</span>
+              )}
+              {!aiHealthOk && aiSteps.length > 0 && (
+                <ul style={{ margin: '12px 0 0', paddingLeft: '20px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  {aiSteps.slice(0, 5).map((step) => (
+                    <li key={step} style={{ marginBottom: '6px' }}>{step}</li>
+                  ))}
+                </ul>
               )}
             </p>
           </div>

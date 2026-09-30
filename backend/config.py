@@ -1,4 +1,5 @@
 import os
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -53,6 +54,13 @@ class Settings(BaseSettings):
     resume_link_systems: str = (
         "https://drive.google.com/file/d/1K61zy3JA7inlXdAZ6aaZD8ETl61qJ38u/view?usp=sharing"
     )
+
+    @field_validator("gemini_api_key", "openai_api_key", mode="before")
+    @classmethod
+    def strip_api_keys(cls, value):
+        if isinstance(value, str):
+            return value.strip().strip('"').strip("'")
+        return value or ""
 
     class Config:
         env_file = (

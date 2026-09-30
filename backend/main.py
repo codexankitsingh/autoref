@@ -19,6 +19,14 @@ async def lifespan(app: FastAPI):
     # Startup
     init_db()
     print("✅ Database initialized")
+    from services.llm_client import gemini_key_kind
+    key = (app_settings.gemini_api_key or "").strip()
+    if key:
+        print(f"🔑 GEMINI_API_KEY loaded ({gemini_key_kind(key)}, len={len(key)})")
+    else:
+        print("⚠️  GEMINI_API_KEY not set")
+    if (app_settings.openai_api_key or "").strip():
+        print("🔑 OPENAI_API_KEY loaded (fallback enabled)")
     scheduler_service.start()
     yield
     # Shutdown

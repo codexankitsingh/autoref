@@ -206,6 +206,18 @@ def generate_text(prompt: str, model_name: str = "gemini-2.5-flash-lite", max_re
     raise RuntimeError("Max retries exceeded for LLM API")
 
 
+GEMINI_CLOUD_CHECKLIST = [
+    "Create API key in AI Studio using a NEW Google Cloud project (not reusing an old blocked project).",
+    "Enable Generative Language API: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com",
+    "Link billing to that project (Billing → Link project) — required for many accounts even on free tier.",
+    "In Cloud Console → APIs & Services → Credentials, confirm key is restricted to Generative Language API only.",
+    "Set Render env on the BACKEND service (not Vercel): GEMINI_API_KEY=<full AQ. key, no quotes>.",
+    "Redeploy Render after env change; confirm Settings → AI engine in the app.",
+    "If still 403 project denied on a brand-new project, use another Google account or contact Google AI support.",
+    "Workaround: set OPENAI_API_KEY on Render and choose OpenAI GPT-4o mini in the compose page.",
+]
+
+
 def check_ai_connectivity() -> dict:
     """Lightweight probe for health endpoint / settings diagnostics."""
     settings = get_settings()
@@ -236,4 +248,11 @@ def check_ai_connectivity() -> dict:
             result["message"] = "Gemini unavailable; OpenAI fallback is working."
         except Exception as e:
             result["message"] = f"Gemini failed and OpenAI fallback failed: {e}"
+
+    result["remediation_steps"] = GEMINI_CLOUD_CHECKLIST
+    if "403" in result.get("message", "") and "denied" in result.get("message", "").lower():
+        result["diagnosis"] = (
+            "Google blocked the Cloud project behind this key (account/project policy), "
+            "not an AutoRef or Render wiring issue. AQ. keys are valid."
+        )
     return result

@@ -231,11 +231,14 @@ export const api = {
   getAiHealth: () =>
     apiRequest<{
       gemini_configured: boolean;
+      gemini_key_kind?: string;
       openai_configured: boolean;
       ai_provider: string;
       gemini_ok: boolean;
       openai_ok: boolean;
       message: string;
+      diagnosis?: string;
+      remediation_steps?: string[];
     }>('/api/ai-health'),
 
   // Mail Accounts
